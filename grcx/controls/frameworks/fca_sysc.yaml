@@ -1,0 +1,278 @@
+name: FCA SYSC — Senior Management Arrangements, Systems and Controls
+id: fca_sysc
+description: >
+  FCA Sourcebook covering organisational requirements, systems and controls
+  for firms authorised under FSMA 2000. Applies to all FCA-regulated firms;
+  specific chapters apply differently to Common Platform firms, MiFID firms,
+  insurers, and other firm types.
+
+controls:
+  # ── SYSC 1–4: General organisational requirements ─────────────────────────
+  - id: SYSC 1 Annex 1
+    category: Application
+    description: >
+      Detailed application provisions — maps which SYSC chapters apply to
+      which firm types (Common Platform, non-MiFID, insurers, etc.)
+
+  - id: SYSC 2.1
+    category: Senior management
+    description: >
+      Apportionment of responsibilities — firms must appropriately apportion
+      significant responsibilities among directors and senior managers so it
+      is clear who has responsibility for each area.
+
+  - id: SYSC 2.2
+    category: Senior management
+    description: >
+      Recording apportionment — firms must keep a record of the persons who
+      perform senior management functions and the responsibilities apportioned
+      to them.
+
+  - id: SYSC 3.1
+    category: Systems and controls
+    description: >
+      Systems and controls general requirement — a firm must take reasonable
+      care to establish and maintain such systems and controls as are
+      appropriate to its business.
+
+  - id: SYSC 3.2
+    category: Systems and controls
+    description: >
+      Specific systems and controls requirements including internal audit,
+      employees, and agent competence. Covers IT systems, business continuity,
+      and management information adequate for senior management oversight.
+
+  - id: SYSC 4.1
+    category: Organisational requirements
+    description: >
+      General organisational requirements — adequate policies and procedures
+      sufficient to ensure compliance with regulatory obligations, including
+      organisational and administrative arrangements to prevent conflicts of
+      interest from adversely affecting clients.
+
+  - id: SYSC 4.2
+    category: Organisational requirements
+    description: >
+      Compliance function — must be effective, independent, and have the
+      necessary authority, resources, and expertise. Compliance officer
+      responsible for reports to senior management.
+
+  - id: SYSC 4.3
+    category: Organisational requirements
+    description: >
+      Internal audit — independent audit function to examine and evaluate
+      the adequacy and effectiveness of the firm's systems, internal controls,
+      and arrangements.
+
+  - id: SYSC 4.4
+    category: Organisational requirements
+    description: >
+      Risk management — independent risk management function with sufficient
+      authority, stature, resources, and access to the governing body.
+
+  - id: SYSC 4.5
+    category: Organisational requirements
+    description: >
+      Segregation of functions — must take reasonable steps to ensure
+      continuity and regularity in performance of its regulated activities.
+
+  - id: SYSC 4.6
+    category: Organisational requirements
+    description: >
+      Senior personnel requirements — business must be directed by at least
+      two persons of sufficiently good repute and sufficient experience.
+
+  - id: SYSC 4.7
+    category: Organisational requirements
+    description: >
+      Responsibility for SMCR — allocation of prescribed responsibilities
+      and overall responsibility for each business area and management
+      function under the Senior Managers and Certification Regime.
+
+  # ── SYSC 5: Employees, agents, and other relevant persons ─────────────────
+  - id: SYSC 5.1
+    category: People
+    description: >
+      Skills, knowledge and expertise — must employ personnel with the skills,
+      knowledge and expertise necessary for the discharge of the responsibilities
+      allocated to them. Includes training requirements.
+
+  # ── SYSC 6: Compliance, internal audit and financial crime ────────────────
+  - id: SYSC 6.1
+    category: Compliance
+    description: >
+      Compliance — must establish, implement, and maintain adequate policies
+      and procedures to detect any risk of failure to comply with obligations
+      and associated risks, with appropriate measures and procedures.
+
+  - id: SYSC 6.2
+    category: Compliance
+    description: >
+      Internal audit — independent internal audit function where proportionate,
+      to examine and evaluate the adequacy and effectiveness of systems and
+      internal controls.
+
+  - id: SYSC 6.3
+    category: Financial crime
+    description: >
+      Financial crime — must take reasonable care to establish and maintain
+      effective systems and controls for countering the risk of being used to
+      further financial crime, including fraud, money laundering, terrorist
+      financing, bribery, corruption, and market abuse.
+
+  # ── SYSC 7: Risk control ──────────────────────────────────────────────────
+  - id: SYSC 7.1
+    category: Risk management
+    description: >
+      Risk control — must establish, implement, and maintain adequate risk
+      management policies and procedures, including effective risk assessment
+      processes to identify risks relating to the firm's activities, processes,
+      and systems. Includes operational, market, credit, and liquidity risk.
+
+  - id: SYSC 7.1.2
+    category: Risk management
+    description: >
+      Operational risk — specific requirements for managing operational risk
+      arising from inadequate or failed internal processes, people, and systems,
+      or from external events.
+
+  - id: SYSC 7.1.7
+    category: Risk management
+    description: >
+      Business continuity — must take reasonable steps to ensure continuity
+      and regularity in performance of regulated activities, including use of
+      appropriate and proportionate systems, resources, and procedures.
+
+  # ── SYSC 8: Outsourcing ───────────────────────────────────────────────────
+  - id: SYSC 8.1
+    category: Outsourcing
+    description: >
+      General outsourcing requirements — must take reasonable steps to avoid
+      undue additional operational risk when relying on third parties to perform
+      operational functions. Outsourcing of important operational functions must
+      not impair the quality of internal controls or supervisory oversight.
+
+  - id: SYSC 8.2
+    category: Outsourcing
+    description: >
+      Outsourcing of critical or important functions — specific requirements
+      when outsourcing functions that are critical or important to the
+      performance of regulated activities, including written agreements,
+      access rights, and continuity obligations.
+
+  - id: SYSC 8.3
+    category: Outsourcing
+    description: >
+      Intragroup outsourcing — requirements when outsourcing to entities
+      within the same group, including regulatory notification and oversight.
+
+  # ── SYSC 9: Record-keeping ────────────────────────────────────────────────
+  - id: SYSC 9.1
+    category: Record-keeping
+    description: >
+      Record-keeping general requirements — must arrange for orderly records
+      to be kept of its business and internal organisation, including all
+      services and transactions undertaken, sufficient to enable the FCA to
+      monitor compliance and demonstrate compliance with obligations.
+
+  # ── SYSC 10: Conflicts of interest ───────────────────────────────────────
+  - id: SYSC 10.1
+    category: Conflicts of interest
+    description: >
+      Conflicts of interest — must take all reasonable steps to identify
+      conflicts of interest between the firm (including managers, employees,
+      and tied agents) and clients, or between clients. Must maintain and
+      operate a conflicts policy.
+
+  - id: SYSC 10.2
+    category: Conflicts of interest
+    description: >
+      Investment research conflicts — specific requirements for firms
+      producing or disseminating investment research, including Chinese walls
+      and disclosure obligations.
+
+  # ── SYSC 11: Liquidity risk (banks / investment firms) ───────────────────
+  - id: SYSC 11.1
+    category: Liquidity risk
+    description: >
+      Liquidity risk systems and controls — firms must establish robust
+      strategies, policies, processes, and systems for identifying, measuring,
+      managing, and monitoring liquidity risk over an appropriate set of
+      time horizons.
+
+  # ── SYSC 12: Group risk ───────────────────────────────────────────────────
+  - id: SYSC 12.1
+    category: Group risk
+    description: >
+      Group risk systems and controls — must have adequate systems and controls
+      to manage risks posed by other group members and to satisfy group-wide
+      risk management requirements. Includes intragroup transactions and
+      exposures.
+
+  # ── SYSC 13: Operational risk ─────────────────────────────────────────────
+  - id: SYSC 13.1
+    category: Operational risk
+    description: >
+      Operational risk — guidance on SYSC 3.1 and SYSC 7.1 as applied to
+      operational risk, covering people, processes, systems, and external
+      events including IT infrastructure, business continuity, and
+      third-party dependencies.
+
+  - id: SYSC 13.5
+    category: Operational risk
+    description: >
+      People and HR operational risk — systems and controls to manage risks
+      arising from employees, including access controls, segregation of
+      duties, and HR procedures.
+
+  - id: SYSC 13.7
+    category: Operational risk
+    description: >
+      IT and information security — systems and controls to manage risks
+      arising from IT systems, including access control, change management,
+      incident response, and information security requirements.
+
+  - id: SYSC 13.8
+    category: Operational risk
+    description: >
+      Outsourcing operational risk — specific operational risk management
+      requirements when functions are outsourced to third parties.
+
+  - id: SYSC 13.9
+    category: Operational risk
+    description: >
+      Business continuity management — adequate and tested plans for
+      continuity of regulated activities in the event of an IT or
+      operational disruption.
+
+  # ── SYSC 14: Prudential risk (insurers) ───────────────────────────────────
+  - id: SYSC 14.1
+    category: Prudential risk
+    description: >
+      Prudential risk management for insurers — systems and controls for
+      managing insurance risk, including underwriting, reserving,
+      reinsurance, and asset-liability management.
+
+  # ── SYSC 15: Operational resilience ─────────────────────────────────────
+  - id: SYSC 15A.1
+    category: Operational resilience
+    description: >
+      Operational resilience — firms must identify their important business
+      services, set impact tolerances for maximum tolerable disruption,
+      and take all reasonable steps to remain within tolerances. Includes
+      mapping of people, processes, technology, facilities, and information
+      supporting important business services.
+
+  - id: SYSC 15A.2
+    category: Operational resilience
+    description: >
+      Scenario testing — must carry out mapping and scenario testing to
+      identify vulnerabilities in operational resilience, and address
+      vulnerabilities found.
+
+  - id: SYSC 15A.3
+    category: Operational resilience
+    description: >
+      Self-assessment — must complete and maintain a written self-assessment
+      of compliance with operational resilience requirements, evidencing
+      mapping, testing, and remediation activities.

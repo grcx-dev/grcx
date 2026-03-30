@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRCX — Regulatory Intelligence</title>
+  <style>
+    /* ── Reset & base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:      #0F1A2E;
+      --navy-mid:  #162236;
+      --navy-card: #1C2D45;
+      --teal:      #0D9488;
+      --teal-light:#14B8A8;
+      --white:     #FFFFFF;
+      --gray-100:  #F1F5F9;
+      --gray-300:  #CBD5E1;
+      --gray-400:  #94A3B8;
+      --gray-500:  #64748B;
+      --crit:      #EF4444;
+      --crit-bg:   rgba(239,68,68,0.12);
+      --warn:      #F59E0B;
+      --warn-bg:   rgba(245,158,11,0.12);
+      --info:      #3B82F6;
+      --info-bg:   rgba(59,130,246,0.12);
+      --radius:    8px;
+      --sidebar-w: 220px;
+    }
+    html { font-size: 15px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header {
+      background: var(--navy);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-text { font-size: 18px; font-weight: 700; color: var(--white); letter-spacing: -0.3px; }
+    .logo-sub  { font-size: 11px; color: var(--gray-400); margin-top: -2px; }
+    .header-meta {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 20px;
+      font-size: 12px; color: var(--gray-400);
+    }
+    .header-meta span { display: flex; align-items: center; gap: 5px; }
+    .pulse {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--teal); display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy-mid);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      padding: 20px 0;
+      flex-shrink: 0;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    .sidebar-section { padding: 0 16px 20px; }
+    .sidebar-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--gray-500);
+      padding: 0 4px 8px;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 8px; border-radius: 6px; cursor: pointer;
+      color: var(--gray-300); font-size: 13px; font-weight: 500;
+      text-decoration: none; transition: background 0.15s, color 0.15s;
+      gap: 8px;
+    }
+    .sidebar-item:hover, .sidebar-item.active {
+      background: rgba(13,148,136,0.12); color: var(--teal-light);
+    }
+    .sidebar-item.active { color: var(--teal-light); }
+    .sidebar-badge {
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 1px 7px;
+      font-size: 11px; font-weight: 600; color: var(--gray-400);
+    }
+    .sidebar-item:hover .sidebar-badge, .sidebar-item.active .sidebar-badge {
+      background: rgba(13,148,136,0.2); color: var(--teal-light);
+    }
+    .jur-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Main ────────────────────────────────────────────────────── */
+    .main { flex: 1; padding: 24px; min-width: 0; }
+
+    /* ── Summary cards ───────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .stat-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--gray-400); margin-bottom: 6px; font-weight: 600;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-value.teal   { color: var(--teal-light); }
+    .stat-value.crit   { color: var(--crit); }
+    .stat-value.warn   { color: var(--warn); }
+    .stat-value.muted  { color: var(--gray-300); }
+    .stat-sub { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+    /* ── Section header ──────────────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--gray-300); }
+
+    /* ── Filter bar ──────────────────────────────────────────────── */
+    .filter-bar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-bar input[type=text] {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; color: var(--white);
+      padding: 6px 12px; font-size: 13px; outline: none;
+      width: 220px; transition: border-color 0.15s;
+    }
+    .filter-bar input[type=text]::placeholder { color: var(--gray-500); }
+    .filter-bar input[type=text]:focus { border-color: var(--teal); }
+    .filter-btn {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; color: var(--gray-300);
+      padding: 6px 12px; font-size: 12px; cursor: pointer;
+      transition: all 0.15s; font-weight: 500;
+    }
+    .filter-btn:hover { border-color: var(--teal); color: var(--teal-light); }
+    .filter-btn.active {
+      background: rgba(13,148,136,0.15);
+      border-color: var(--teal); color: var(--teal-light);
+    }
+
+    /* ── Table ───────────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: rgba(255,255,255,0.04);
+      padding: 10px 14px; text-align: left;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--gray-400); font-weight: 600; white-space: nowrap;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody tr.flagged:hover { background: rgba(13,148,136,0.05); }
+    td { padding: 10px 14px; vertical-align: top; }
+
+    .td-ts  { color: var(--gray-500); font-size: 11px; white-space: nowrap; min-width: 100px; }
+    .td-jur { min-width: 56px; }
+    .td-title { min-width: 200px; }
+    .td-title a { color: var(--white); text-decoration: none; }
+    .td-title a:hover { color: var(--teal-light); text-decoration: underline; }
+    .td-sev  { min-width: 80px; }
+    .td-ctrl { min-width: 120px; }
+    .td-action { min-width: 180px; max-width: 280px; color: var(--gray-300); }
+
+    /* Severity pill */
+    .sev {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .sev.critical { background: var(--crit-bg); color: var(--crit); }
+    .sev.warning  { background: var(--warn-bg); color: var(--warn); }
+    .sev.info     { background: var(--info-bg); color: var(--info); }
+    .sev::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    /* Jurisdiction pill */
+    .jur {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    }
+    .jur.BOE { background: rgba(99,102,241,0.15); color: #818CF8; }
+    .jur.FCA { background: rgba(239,68,68,0.12);  color: #FCA5A5; }
+    .jur.MAS { background: rgba(245,158,11,0.12); color: #FCD34D; }
+    .jur.SEC { background: rgba(13,148,136,0.15); color: var(--teal-light); }
+
+    /* Control tags */
+    .ctrl-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+    .ctrl-tag {
+      font-size: 10px; padding: 1px 5px; border-radius: 3px;
+      background: rgba(255,255,255,0.07); color: var(--gray-400);
+      font-family: ui-monospace, monospace; white-space: nowrap;
+    }
+    .ctrl-tag.iso { background: rgba(59,130,246,0.1); color: #93C5FD; }
+    .ctrl-tag.sysc { background: rgba(245,158,11,0.1); color: #FCD34D; }
+
+    /* ── Expandable detail ────────────────────────────────────────── */
+    .expand-btn {
+      background: none; border: none; color: var(--teal);
+      cursor: pointer; font-size: 12px; padding: 0;
+      display: flex; align-items: center; gap: 4px;
+      margin-top: 4px; font-weight: 500;
+    }
+    .expand-btn:hover { color: var(--teal-light); }
+    .expand-btn .arrow { transition: transform 0.2s; display: inline-block; }
+    .expand-btn.open .arrow { transform: rotate(90deg); }
+
+    .detail-row td {
+      padding: 0 14px;
+      background: rgba(13,148,136,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .detail-inner {
+      padding: 16px 0;
+      display: none;
+    }
+    .detail-inner.open { display: block; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .detail-card {
+      background: var(--navy-mid);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px; padding: 12px 14px;
+    }
+    .detail-card-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--teal); font-weight: 600; margin-bottom: 6px;
+    }
+    .detail-card-body { font-size: 12px; color: var(--gray-300); line-height: 1.55; }
+    .detail-ctrl-section { margin-bottom: 12px; }
+    .detail-ctrl-header {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--gray-500); font-weight: 600; margin-bottom: 6px;
+    }
+    .detail-fw-row {
+      display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .detail-fw-block { flex: 1; min-width: 200px; }
+    .detail-fw-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      font-weight: 700; margin-bottom: 6px;
+    }
+    .detail-fw-label.iso  { color: #93C5FD; }
+    .detail-fw-label.sysc { color: #FCD34D; }
+
+    /* ── Empty state ──────────────────────────────────────────────── */
+    .empty { text-align: center; padding: 48px 24px; color: var(--gray-500); }
+    .empty-icon { font-size: 32px; margin-bottom: 12px; }
+
+    /* ── Scrollbar ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .td-action { display: none; }
+    }
+    @media (max-width: 640px) {
+      .main { padding: 12px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .td-ctrl { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <a class="header-logo" href="/">
+    <svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 2L3 7V18C3 25.5 8.8 32.4 16 34C23.2 32.4 29 25.5 29 18V7L16 2Z" stroke="#0D9488" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M16 2L3 7V18C3 25.5 8.8 32.4 16 34C23.2 32.4 29 25.5 29 18V7L16 2Z" fill="#0D9488" fill-opacity="0.12"/>
+    </svg>
+    <div>
+      <div class="logo-text">GRCX</div>
+      <div class="logo-sub">Regulatory Intelligence</div>
+    </div>
+  </a>
+  <div class="header-meta">
+    <span><span class="pulse"></span> Live</span>
+    <span>Last updated: <strong style="color:var(--white)">{{ last_updated }}</strong></span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Jurisdictions</div>
+      <a class="sidebar-item active" href="#" onclick="filterJur('ALL'); return false;">
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="jur-dot" style="background:var(--teal)"></span>All
+        </span>
+        <span class="sidebar-badge">{{ total }}</span>
+      </a>
+      {% set jur_colors = {'BOE':'#818CF8','FCA':'#FCA5A5','MAS':'#FCD34D','SEC':'#2DD4BF'} %}
+      {% for j in jurisdictions %}
+      <a class="sidebar-item" href="#" onclick="filterJur('{{ j }}'); return false;">
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="jur-dot" style="background:{{ jur_colors.get(j,'#fff') }}"></span>{{ j }}
+        </span>
+        <span class="sidebar-badge">{{ jurisdiction_counts.get(j, 0) }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filter by severity</div>
+      <a class="sidebar-item" href="#" onclick="filterSev('ALL'); return false;">
+        <span>All severities</span>
+      </a>
+      <a class="sidebar-item" href="#" onclick="filterSev('critical'); return false;">
+        <span style="color:var(--crit)">● Critical</span>
+        <span class="sidebar-badge">{{ rows | selectattr('severity','eq','critical') | list | length }}</span>
+      </a>
+      <a class="sidebar-item" href="#" onclick="filterSev('warning'); return false;">
+        <span style="color:var(--warn)">● Warning</span>
+        <span class="sidebar-badge">{{ rows | selectattr('severity','eq','warning') | list | length }}</span>
+      </a>
+      <a class="sidebar-item" href="#" onclick="filterSev('info'); return false;">
+        <span style="color:var(--info)">● Info</span>
+        <span class="sidebar-badge">{{ rows | selectattr('flagged') | list | length }}</span>
+      </a>
+      <a class="sidebar-item" href="#" onclick="filterSev('none'); return false;">
+        <span style="color:var(--gray-400)">○ No implications</span>
+        <span class="sidebar-badge">{{ no_implications }}</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Publications processed</div>
+        <div class="stat-value teal">{{ total }}</div>
+        <div class="stat-sub">across all feeds</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Flagged for action</div>
+        <div class="stat-value warn">{{ flagged }}</div>
+        <div class="stat-sub">with resolver assessment</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Critical</div>
+        <div class="stat-value crit">{{ critical_count }}</div>
+        <div class="stat-sub">urgent action required</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">No implications</div>
+        <div class="stat-value muted">{{ no_implications }}</div>
+        <div class="stat-sub">assessed, no action needed</div>
+      </div>
+    </div>
+
+    <!-- Table section -->
+    <div class="section-header">
+      <div class="section-title">Publications</div>
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search title or summary…" oninput="applyFilters()">
+        <button class="filter-btn active" id="btn-flagged" onclick="toggleFlagged()">Flagged only</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="pubTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Jurisdiction</th>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>Controls</th>
+            <th>Recommended action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr class="pub-row {% if row.flagged %}flagged{% endif %}"
+              data-jur="{{ row.jurisdiction }}"
+              data-sev="{{ row.severity }}"
+              data-flagged="{{ 'true' if row.flagged else 'false' }}"
+              data-search="{{ (row.title ~ ' ' ~ row.summary)|lower }}">
+            <td class="td-ts">{{ row.timestamp[:10] }}<br>{{ row.timestamp[11:16] }}</td>
+            <td class="td-jur"><span class="jur {{ row.jurisdiction }}">{{ row.jurisdiction }}</span></td>
+            <td class="td-title">
+              {% if row.source %}
+                <a href="{{ row.source }}" target="_blank" rel="noopener">{{ row.title }}</a>
+              {% else %}
+                {{ row.title }}
+              {% endif %}
+              {% if row.flagged %}
+                <br><button class="expand-btn" onclick="toggleDetail('{{ row.fingerprint }}', this)">
+                  <span class="arrow">▶</span> View assessment
+                </button>
+              {% endif %}
+            </td>
+            <td class="td-sev">
+              {% if row.flagged %}
+                <span class="sev {{ row.severity }}">{{ row.severity }}</span>
+              {% else %}
+                <span style="color:var(--gray-600);font-size:11px">—</span>
+              {% endif %}
+            </td>
+            <td class="td-ctrl">
+              <div class="ctrl-tags">
+                {% for a in row.assessments %}
+                  {% set fw = a.framework %}
+                  {% for c in a.affected_controls %}
+                    <span class="ctrl-tag {% if 'sysc' in fw.lower() %}sysc{% else %}iso{% endif %}">{{ c }}</span>
+                  {% endfor %}
+                {% endfor %}
+              </div>
+            </td>
+            <td class="td-action">
+              {% if row.recommended_action %}
+                {{ row.recommended_action[:120] }}{% if row.recommended_action|length > 120 %}…{% endif %}
+              {% else %}
+                <span style="color:var(--gray-600)">—</span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% if row.flagged %}
+          <tr class="detail-row" id="detail-{{ row.fingerprint }}" style="display:none">
+            <td colspan="6">
+              <div class="detail-inner" id="inner-{{ row.fingerprint }}">
+
+                <!-- Framework controls side by side -->
+                <div class="detail-fw-row">
+                  {% for fw_id, fw_assessments in row.by_framework.items() %}
+                  <div class="detail-fw-block">
+                    <div class="detail-fw-label {% if 'sysc' in fw_id.lower() %}sysc{% else %}iso{% endif %}">
+                      {% if 'sysc' in fw_id.lower() %}FCA SYSC{% else %}ISO 27001{% endif %}
+                    </div>
+                    <div class="ctrl-tags" style="margin-bottom:8px">
+                      {% for a in fw_assessments %}
+                        {% for c in a.affected_controls %}
+                          <span class="ctrl-tag {% if 'sysc' in fw_id.lower() %}sysc{% else %}iso{% endif %}">{{ c }}</span>
+                        {% endfor %}
+                      {% endfor %}
+                    </div>
+                    {% for a in fw_assessments %}
+                    <div style="font-size:12px;color:var(--gray-400);margin-bottom:4px">{{ a.summary }}</div>
+                    {% endfor %}
+                  </div>
+                  {% endfor %}
+                </div>
+
+                <!-- Detail cards -->
+                <div class="detail-grid">
+                  {% if row.assessments %}
+                  {% set a = row.assessments[0] %}
+                  <div class="detail-card">
+                    <div class="detail-card-label">Recommended action</div>
+                    <div class="detail-card-body">{{ a.recommended_action }}</div>
+                  </div>
+                  <div class="detail-card">
+                    <div class="detail-card-label">Rationale</div>
+                    <div class="detail-card-body">{{ a.rationale }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if not rows %}
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div>No publications found in audit log.</div>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let showFlaggedOnly = true;
+  let activeJur = 'ALL';
+  let activeSev = 'ALL';
+
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.pub-row').forEach(row => {
+      const jur     = row.dataset.jur;
+      const sev     = row.dataset.sev;
+      const flagged = row.dataset.flagged === 'true';
+      const text    = row.dataset.search;
+
+      const jurOk  = activeJur === 'ALL' || jur === activeJur;
+      const sevOk  = activeSev === 'ALL'
+                     || (activeSev === 'none' && !flagged)
+                     || sev === activeSev;
+      const flOk   = !showFlaggedOnly || flagged;
+      const srOk   = !search || text.includes(search);
+
+      const show = jurOk && sevOk && flOk && srOk;
+      row.style.display = show ? '' : 'none';
+
+      // Hide detail row too when parent is hidden
+      const fp = row.querySelector('[id^=detail-]');
+      if (fp) {
+        const detailRow = document.getElementById('detail-' + fp.id.replace('detail-',''));
+      }
+      // Find associated detail row via fingerprint in expand button
+      const btn = row.querySelector('.expand-btn');
+      if (btn) {
+        const onclick = btn.getAttribute('onclick') || '';
+        const m = onclick.match(/'([^']+)'/);
+        if (m) {
+          const dr = document.getElementById('detail-' + m[1]);
+          if (dr) dr.style.display = show ? dr.style.display : 'none';
+        }
+      }
+    });
+  }
+
+  function toggleFlagged() {
+    showFlaggedOnly = !showFlaggedOnly;
+    document.getElementById('btn-flagged').classList.toggle('active', showFlaggedOnly);
+    applyFilters();
+  }
+
+  function filterJur(jur) {
+    activeJur = jur;
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+      const onclick = el.getAttribute('onclick') || '';
+      el.classList.toggle('active', onclick.includes(`'${jur}'`) || (jur === 'ALL' && onclick.includes("'ALL'")));
+    });
+    applyFilters();
+  }
+
+  function filterSev(sev) {
+    activeSev = sev;
+    applyFilters();
+  }
+
+  function toggleDetail(fp, btn) {
+    const detailRow = document.getElementById('detail-' + fp);
+    const inner     = document.getElementById('inner-' + fp);
+    const isOpen    = inner.classList.contains('open');
+    inner.classList.toggle('open', !isOpen);
+    detailRow.style.display = isOpen ? 'none' : '';
+    btn.classList.toggle('open', !isOpen);
+  }
+
+  // Apply default filter on load (flagged only)
+  applyFilters();
+</script>
+</body>
+</html>

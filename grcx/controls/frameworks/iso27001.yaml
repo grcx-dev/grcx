@@ -1,0 +1,380 @@
+name: ISO/IEC 27001:2022
+id: iso27001
+description: International standard for information security management systems
+
+controls:
+  # ── Clause 5: Organisational controls ─────────────────────────────────────
+  - id: "5.1"
+    category: Organisational
+    description: Policies for information security
+
+  - id: "5.2"
+    category: Organisational
+    description: Information security roles and responsibilities
+
+  - id: "5.3"
+    category: Organisational
+    description: Segregation of duties
+
+  - id: "5.4"
+    category: Organisational
+    description: Management responsibilities
+
+  - id: "5.5"
+    category: Organisational
+    description: Contact with authorities
+
+  - id: "5.6"
+    category: Organisational
+    description: Contact with special interest groups
+
+  - id: "5.7"
+    category: Organisational
+    description: Threat intelligence
+
+  - id: "5.8"
+    category: Organisational
+    description: Information security in project management
+
+  - id: "5.9"
+    category: Organisational
+    description: Inventory of information and other associated assets
+
+  - id: "5.10"
+    category: Organisational
+    description: Acceptable use of information and other associated assets
+
+  - id: "5.11"
+    category: Organisational
+    description: Return of assets
+
+  - id: "5.12"
+    category: Organisational
+    description: Classification of information
+
+  - id: "5.13"
+    category: Organisational
+    description: Labelling of information
+
+  - id: "5.14"
+    category: Organisational
+    description: Information transfer
+
+  - id: "5.15"
+    category: Organisational
+    description: Access control
+
+  - id: "5.16"
+    category: Organisational
+    description: Identity management
+
+  - id: "5.17"
+    category: Organisational
+    description: Authentication information
+
+  - id: "5.18"
+    category: Organisational
+    description: Access rights
+
+  - id: "5.19"
+    category: Organisational
+    description: Information security in supplier relationships
+
+  - id: "5.20"
+    category: Organisational
+    description: Addressing information security within supplier agreements
+
+  - id: "5.21"
+    category: Organisational
+    description: Managing information security in the ICT supply chain
+
+  - id: "5.22"
+    category: Organisational
+    description: Monitoring, review and change management of supplier services
+
+  - id: "5.23"
+    category: Organisational
+    description: Information security for use of cloud services
+
+  - id: "5.24"
+    category: Organisational
+    description: Information security incident management planning and preparation
+
+  - id: "5.25"
+    category: Organisational
+    description: Assessment and decision on information security events
+
+  - id: "5.26"
+    category: Organisational
+    description: Response to information security incidents
+
+  - id: "5.27"
+    category: Organisational
+    description: Learning from information security incidents
+
+  - id: "5.28"
+    category: Organisational
+    description: Collection of evidence
+
+  - id: "5.29"
+    category: Organisational
+    description: Information security during disruption
+
+  - id: "5.30"
+    category: Organisational
+    description: ICT readiness for business continuity
+
+  - id: "5.31"
+    category: Organisational
+    description: Legal, statutory, regulatory and contractual requirements
+
+  - id: "5.32"
+    category: Organisational
+    description: Intellectual property rights
+
+  - id: "5.33"
+    category: Organisational
+    description: Protection of records
+
+  - id: "5.34"
+    category: Organisational
+    description: Privacy and protection of personal information (PII)
+
+  - id: "5.35"
+    category: Organisational
+    description: Independent review of information security
+
+  - id: "5.36"
+    category: Organisational
+    description: Compliance with policies, rules and standards for information security
+
+  - id: "5.37"
+    category: Organisational
+    description: Documented operating procedures
+
+  # ── Clause 6: People controls ──────────────────────────────────────────────
+  - id: "6.1"
+    category: People
+    description: Screening
+
+  - id: "6.2"
+    category: People
+    description: Terms and conditions of employment
+
+  - id: "6.3"
+    category: People
+    description: Information security awareness, education and training
+
+  - id: "6.4"
+    category: People
+    description: Disciplinary process
+
+  - id: "6.5"
+    category: People
+    description: Responsibilities after termination or change of employment
+
+  - id: "6.6"
+    category: People
+    description: Confidentiality or non-disclosure agreements
+
+  - id: "6.7"
+    category: People
+    description: Remote working
+
+  - id: "6.8"
+    category: People
+    description: Information security event reporting
+
+  # ── Clause 7: Physical controls ────────────────────────────────────────────
+  - id: "7.1"
+    category: Physical
+    description: Physical security perimeters
+
+  - id: "7.2"
+    category: Physical
+    description: Physical entry
+
+  - id: "7.3"
+    category: Physical
+    description: Securing offices, rooms and facilities
+
+  - id: "7.4"
+    category: Physical
+    description: Physical security monitoring
+
+  - id: "7.5"
+    category: Physical
+    description: Protecting against physical and environmental threats
+
+  - id: "7.6"
+    category: Physical
+    description: Working in secure areas
+
+  - id: "7.7"
+    category: Physical
+    description: Clear desk and clear screen
+
+  - id: "7.8"
+    category: Physical
+    description: Equipment siting and protection
+
+  - id: "7.9"
+    category: Physical
+    description: Security of assets off-premises
+
+  - id: "7.10"
+    category: Physical
+    description: Storage media
+
+  - id: "7.11"
+    category: Physical
+    description: Supporting utilities
+
+  - id: "7.12"
+    category: Physical
+    description: Cabling security
+
+  - id: "7.13"
+    category: Physical
+    description: Equipment maintenance
+
+  - id: "7.14"
+    category: Physical
+    description: Secure disposal or re-use of equipment
+
+  # ── Clause 8: Technological controls ──────────────────────────────────────
+  - id: "8.1"
+    category: Technological
+    description: User endpoint devices
+
+  - id: "8.2"
+    category: Technological
+    description: Privileged access rights
+
+  - id: "8.3"
+    category: Technological
+    description: Information access restriction
+
+  - id: "8.4"
+    category: Technological
+    description: Access to source code
+
+  - id: "8.5"
+    category: Technological
+    description: Secure authentication
+
+  - id: "8.6"
+    category: Technological
+    description: Capacity management
+
+  - id: "8.7"
+    category: Technological
+    description: Protection against malware
+
+  - id: "8.8"
+    category: Technological
+    description: Management of technical vulnerabilities
+
+  - id: "8.9"
+    category: Technological
+    description: Configuration management
+
+  - id: "8.10"
+    category: Technological
+    description: Information deletion
+
+  - id: "8.11"
+    category: Technological
+    description: Data masking
+
+  - id: "8.12"
+    category: Technological
+    description: Data leakage prevention
+
+  - id: "8.13"
+    category: Technological
+    description: Information backup
+
+  - id: "8.14"
+    category: Technological
+    description: Redundancy of information processing facilities
+
+  - id: "8.15"
+    category: Technological
+    description: Logging
+
+  - id: "8.16"
+    category: Technological
+    description: Monitoring activities
+
+  - id: "8.17"
+    category: Technological
+    description: Clock synchronisation
+
+  - id: "8.18"
+    category: Technological
+    description: Use of privileged utility programs
+
+  - id: "8.19"
+    category: Technological
+    description: Installation of software on operational systems
+
+  - id: "8.20"
+    category: Technological
+    description: Networks security
+
+  - id: "8.21"
+    category: Technological
+    description: Security of network services
+
+  - id: "8.22"
+    category: Technological
+    description: Segregation of networks
+
+  - id: "8.23"
+    category: Technological
+    description: Web filtering
+
+  - id: "8.24"
+    category: Technological
+    description: Use of cryptography
+
+  - id: "8.25"
+    category: Technological
+    description: Secure development life cycle
+
+  - id: "8.26"
+    category: Technological
+    description: Application security requirements
+
+  - id: "8.27"
+    category: Technological
+    description: Secure system architecture and engineering principles
+
+  - id: "8.28"
+    category: Technological
+    description: Secure coding
+
+  - id: "8.29"
+    category: Technological
+    description: Security testing in development and acceptance
+
+  - id: "8.30"
+    category: Technological
+    description: Outsourced development
+
+  - id: "8.31"
+    category: Technological
+    description: Separation of development, test and production environments
+
+  - id: "8.32"
+    category: Technological
+    description: Change management
+
+  - id: "8.33"
+    category: Technological
+    description: Test information
+
+  - id: "8.34"
+    category: Technological
+    description: Protection of information systems during audit testing
