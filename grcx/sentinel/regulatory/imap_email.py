@@ -137,10 +137,10 @@ class EmailSentinel:
     # ------------------------------------------------------------------
 
     def fetch(self) -> list[RegulatoryItem]:
-        password = os.environ.get("VIGIL_IMAP_PASSWORD")
+        password = os.environ.get("GRCX_IMAP_PASSWORD")
         if not password:
             console.print(
-                f"[red][{self.jurisdiction}] VIGIL_IMAP_PASSWORD not set — "
+                f"[red][{self.jurisdiction}] GRCX_IMAP_PASSWORD not set — "
                 f"skipping IMAP fetch[/red]"
             )
             return []
@@ -226,18 +226,36 @@ class EmailSentinel:
                 )
             ]
 
+        # Link text patterns that indicate boilerplate UI chrome
+        _SKIP_TEXT = re.compile(
+            r'^(view\s+(in|online|this|\w+\s+browser)|unsubscribe|manage\s+(preferences|subscription)|'
+            r'click\s+here|read\s+(more|online)|sign\s+up.*|update|forward|share|'
+            r'follow\s+us|contact\s+us|privacy\s+policy|terms|subscribe|'
+            r'financial\s+conduct\s+authority|monetary\s+authority|'
+            r'securities\s+(and\s+exchange\s+)?(commission|authority))$',
+            re.IGNORECASE
+        )
+        # Skip href patterns that are purely tracking/utility with no content value
+        _SKIP_HREF = ("unsubscribe", "preferences", "optout", "mailto:")
+
         items = []
+        seen_hrefs: set[str] = set()
         for text, href in links:
-            # Skip unsubscribe / preferences / tracking links
-            if any(
-                skip in href.lower()
-                for skip in ("unsubscribe", "preferences", "optout",
-                             "tracking", "click?", "redirect", "utm_")
-            ):
+            if any(skip in href.lower() for skip in _SKIP_HREF):
                 continue
             # Skip very short link texts that are probably UI chrome
-            if len(text) < 10:
+            if len(text) < 15:
                 continue
+            # Skip bare domain names (e.g. "fca.org.uk", "fca.org.uk/news")
+            if re.match(r'^[\w.-]+\.[a-z]{2,}(/[\w/.-]*)?$', text.strip()):
+                continue
+            # Skip known boilerplate phrases
+            if _SKIP_TEXT.match(text.strip()):
+                continue
+            # Deduplicate by URL
+            if href in seen_hrefs:
+                continue
+            seen_hrefs.add(href)
 
             items.append(
                 RegulatoryItem(
