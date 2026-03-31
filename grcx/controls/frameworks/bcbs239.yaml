@@ -1,0 +1,123 @@
+name: BCBS 239 — Principles for Effective Risk Data Aggregation and Risk Reporting
+id: bcbs239
+description: >
+  Basel Committee on Banking Supervision Principles for Effective Risk Data
+  Aggregation and Risk Reporting (January 2013). Sets out fourteen principles
+  covering governance and infrastructure, risk data aggregation capabilities,
+  risk reporting practices, and supervisory review. Applies to G-SIBs and
+  recommended for D-SIBs.
+
+controls:
+  # ── Overarching Governance and Infrastructure ─────────────────────────────
+  - id: BCBS239-P1
+    category: Governance
+    description: >
+      Governance — a bank's board and senior management should promote and review
+      adherence to the principles. Risk data aggregation and risk reporting
+      frameworks should be subject to strong governance and controls, and be
+      documented, validated, and reviewed periodically.
+
+  - id: BCBS239-P2
+    category: Infrastructure
+    description: >
+      Data architecture and IT infrastructure — a bank should design, build,
+      and maintain data architecture and IT infrastructure which fully supports
+      its risk data aggregation capabilities and risk reporting practices in
+      normal and stress periods.
+
+  # ── Risk Data Aggregation Capabilities ───────────────────────────────────
+  - id: BCBS239-P3
+    category: Risk data aggregation
+    description: >
+      Accuracy and integrity — a bank should be able to generate accurate and
+      reliable risk data to meet normal and stress reporting accuracy requirements.
+      Data should be aggregated on a largely automated basis with minimal manual
+      intervention.
+
+  - id: BCBS239-P4
+    category: Risk data aggregation
+    description: >
+      Completeness — a bank should be able to capture and aggregate all material
+      risk data across the banking group. Data should be available by business
+      line, legal entity, asset type, industry, region, and other groupings
+      relevant to risk management.
+
+  - id: BCBS239-P5
+    category: Risk data aggregation
+    description: >
+      Timeliness — a bank should be able to generate aggregate and up-to-date
+      risk data in a timely manner while meeting the principles of accuracy and
+      integrity. The frequency of reporting should reflect the needs of the
+      board and senior management and regulatory requirements.
+
+  - id: BCBS239-P6
+    category: Risk data aggregation
+    description: >
+      Adaptability — a bank should be able to generate aggregate risk data to
+      meet a broad range of on-demand, ad hoc risk management reporting requests,
+      including during stress or crisis situations and in a rapidly changing risk
+      environment.
+
+  # ── Risk Reporting Practices ──────────────────────────────────────────────
+  - id: BCBS239-P7
+    category: Risk reporting
+    description: >
+      Accuracy — risk management reports should accurately and precisely convey
+      aggregated risk data and reflect risk in an exact manner. Reports should
+      be reconciled and validated.
+
+  - id: BCBS239-P8
+    category: Risk reporting
+    description: >
+      Comprehensiveness — risk management reports should cover all material risk
+      areas within the organisation. The depth and scope of reporting should be
+      consistent with the size and complexity of the bank's operations and risk
+      profile.
+
+  - id: BCBS239-P9
+    category: Risk reporting
+    description: >
+      Clarity and usefulness — risk management reports should communicate
+      information clearly and concisely. Reports should be easy to understand
+      yet comprehensive enough to enable informed decision-making.
+
+  - id: BCBS239-P10
+    category: Risk reporting
+    description: >
+      Frequency — the board and senior management should set the frequency of
+      risk management report production and distribution. Frequency should
+      reflect the needs of recipients and the nature of risks being reported,
+      and be increased during stress periods.
+
+  - id: BCBS239-P11
+    category: Risk reporting
+    description: >
+      Distribution — risk management reports should be distributed to the
+      relevant parties while ensuring confidentiality is maintained. A bank
+      should have a distribution policy aligned to the nature of reports and
+      sensitivity of information.
+
+  # ── Supervisory Review, Tools and Cooperation ─────────────────────────────
+  - id: BCBS239-P12
+    category: Supervisory review
+    description: >
+      Review — supervisors should periodically review and evaluate a bank's
+      compliance with the eleven principles above. Supervisors should have
+      the necessary tools and resources to review risk data aggregation
+      capabilities and risk reporting frameworks.
+
+  - id: BCBS239-P13
+    category: Supervisory review
+    description: >
+      Remedial actions and supervisory measures — supervisors should have and
+      use appropriate tools to require effective and timely remedial action
+      by a bank to address deficiencies in its risk data aggregation capabilities
+      and risk reporting practices.
+
+  - id: BCBS239-P14
+    category: Supervisory review
+    description: >
+      Home/host cooperation — supervisors should cooperate with relevant
+      supervisors in other jurisdictions regarding the supervision of risk
+      data aggregation capabilities and risk reporting practices, in accordance
+      with the agreed international supervisory framework.

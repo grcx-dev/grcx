@@ -13,8 +13,8 @@ item = RegulatoryItem(
 )
 
 config = {
-    "controls": {"framework": "iso27001"},
-    "resolver": {"llm": "claude-sonnet-4-6", "auto_remediate": "notify_only"},
+    "controls": {"frameworks": ["iso27001", "fca_sysc", "mas_trm", "nist_csf", "bcbs239", "soc2"]},
+    "resolver": {"llm": "models/gemini-2.5-flash", "auto_remediate": "notify_only"},
     "audit": {"output": "grcx-audit/test-resolver"}
 }
 
@@ -22,10 +22,9 @@ audit = AuditLog(log_dir="grcx-audit/test-resolver")
 resolver = Resolver(config=config, audit=audit)
 
 print("\n--- Running Resolver ---\n")
-result = resolver.analyse(item)
+results = resolver.analyse(item)
 
-if result:
-    print(f"\nHas implications: {result.has_implications}")
-    print(f"Severity: {result.severity}")
-    print(f"Controls: {result.affected_controls}")
-    print(f"Action: {result.recommended_action}")
+print(f"\n--- Summary ({len(results)} frameworks) ---")
+for r in results:
+    framework = r.raw_item.jurisdiction if hasattr(r.raw_item, 'jurisdiction') else '?'
+    print(f"  {'⚠' if r.has_implications else '✓'} [{r.severity}] {r.summary[:80]}")

@@ -6,8 +6,11 @@ from pathlib import Path
 from typing import Optional
 
 import anthropic
+import httpx
 import yaml
 from rich.console import Console
+from google import genai
+from google.genai import types as genai_types
 
 from grcx.sentinel.regulatory.rss import RegulatoryItem
 from grcx.audit.log import AuditLog
@@ -15,6 +18,7 @@ from grcx.audit.log import AuditLog
 console = Console()
 
 _FRAMEWORKS_DIR = Path(__file__).parent.parent / "controls" / "frameworks"
+_OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 RESOLVER_PROMPT = """You are GRCX, a compliance operations agent for a regulated financial services firm.
 
@@ -109,7 +113,12 @@ class Resolver:
         self.audit = audit
         self.mode = config.get("resolver", {}).get("auto_remediate", "notify_only")
         self.llm = config.get("resolver", {}).get("llm", "claude-sonnet-4-6")
-        self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        self._use_gemini = "gemini" in self.llm
+        self._use_ollama = not self.llm.startswith("claude-") and not self._use_gemini
+        if not self._use_ollama and not self._use_gemini:
+            self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        elif self._use_gemini:
+            self.gemini = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
         # Support both `framework: id` (single) and `frameworks: [id, id]` (multi)
         controls_cfg = config.get("controls", {})
@@ -160,13 +169,35 @@ class Resolver:
         )
 
         try:
-            message = self.client.messages.create(
-                model=self.llm,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-            raw = message.content[0].text.strip()
+            if self._use_ollama:
+                response = httpx.post(
+                    f"{_OLLAMA_HOST}/api/chat",
+                    json={
+                        "model": self.llm,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "stream": False,
+                        "format": "json",
+                    },
+                    timeout=180.0,
+                )
+                response.raise_for_status()
+                raw = response.json()["message"]["content"].strip()
+            elif self._use_gemini:
+                resp = self.gemini.models.generate_content(
+                    model=self.llm,
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                    ),
+                )
+                raw = resp.text.strip()
+            else:
+                message = self.client.messages.create(
+                    model=self.llm,
+                    max_tokens=1024,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                raw = message.content[0].text.strip()
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
                 if raw.startswith("json"):

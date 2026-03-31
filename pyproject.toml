@@ -21,6 +21,7 @@ dependencies = [
     "rich>=13.0.0",
     "cryptography>=42.0.0",
     "flask>=3.0.0",
+    "google-genai>=1.0.0",
 ]
 
 [project.scripts]

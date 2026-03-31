@@ -1,0 +1,434 @@
+name: SOC 2 — Trust Services Criteria
+id: soc2
+description: >
+  AICPA Trust Services Criteria for SOC 2 engagements. Covers five categories:
+  Security (Common Criteria CC1–CC9), Availability (A1), Processing Integrity (PI1),
+  Confidentiality (C1), and Privacy (P1–P8). The Security category (Common Criteria)
+  is required for all SOC 2 engagements; the other four are optional.
+
+controls:
+  # ── CC1: Control Environment ─────────────────────────────────────────────
+  - id: CC1.1
+    category: Security
+    description: >
+      COSO Principle 1 — the entity demonstrates a commitment to integrity and
+      ethical values.
+
+  - id: CC1.2
+    category: Security
+    description: >
+      COSO Principle 2 — the board of directors demonstrates independence from
+      management and exercises oversight of the development and performance of
+      internal control.
+
+  - id: CC1.3
+    category: Security
+    description: >
+      COSO Principle 3 — management establishes, with board oversight, structures,
+      reporting lines, and appropriate authorities and responsibilities in the
+      pursuit of objectives.
+
+  - id: CC1.4
+    category: Security
+    description: >
+      COSO Principle 4 — the entity demonstrates a commitment to attract,
+      develop, and retain competent individuals in alignment with objectives.
+
+  - id: CC1.5
+    category: Security
+    description: >
+      COSO Principle 5 — the entity holds individuals accountable for their
+      internal control responsibilities in the pursuit of objectives.
+
+  # ── CC2: Communication and Information ───────────────────────────────────
+  - id: CC2.1
+    category: Security
+    description: >
+      COSO Principle 13 — the entity obtains or generates and uses relevant,
+      quality information to support the functioning of internal control.
+
+  - id: CC2.2
+    category: Security
+    description: >
+      COSO Principle 14 — the entity internally communicates information,
+      including objectives and responsibilities for internal control, necessary
+      to support the functioning of internal control.
+
+  - id: CC2.3
+    category: Security
+    description: >
+      COSO Principle 15 — the entity communicates with external parties regarding
+      matters affecting the functioning of internal control.
+
+  # ── CC3: Risk Assessment ─────────────────────────────────────────────────
+  - id: CC3.1
+    category: Security
+    description: >
+      COSO Principle 6 — the entity specifies objectives with sufficient clarity
+      to enable the identification and assessment of risks relating to objectives.
+
+  - id: CC3.2
+    category: Security
+    description: >
+      COSO Principle 7 — the entity identifies risks to the achievement of its
+      objectives across the entity and analyses risks as a basis for determining
+      how the risks should be managed.
+
+  - id: CC3.3
+    category: Security
+    description: >
+      COSO Principle 8 — the entity considers the potential for fraud in
+      assessing risks to the achievement of objectives.
+
+  - id: CC3.4
+    category: Security
+    description: >
+      COSO Principle 9 — the entity identifies and assesses changes that could
+      significantly impact the system of internal control.
+
+  # ── CC4: Monitoring of Controls ──────────────────────────────────────────
+  - id: CC4.1
+    category: Security
+    description: >
+      COSO Principle 16 — the entity selects, develops, and performs ongoing
+      and/or separate evaluations to ascertain whether the components of internal
+      control are present and functioning.
+
+  - id: CC4.2
+    category: Security
+    description: >
+      COSO Principle 17 — the entity evaluates and communicates internal control
+      deficiencies in a timely manner to those parties responsible for taking
+      corrective action, including senior management and the board.
+
+  # ── CC5: Control Activities ───────────────────────────────────────────────
+  - id: CC5.1
+    category: Security
+    description: >
+      COSO Principle 10 — the entity selects and develops control activities
+      that contribute to the mitigation of risks to the achievement of objectives
+      to acceptable levels.
+
+  - id: CC5.2
+    category: Security
+    description: >
+      COSO Principle 11 — the entity also selects and develops general control
+      activities over technology to support the achievement of objectives.
+
+  - id: CC5.3
+    category: Security
+    description: >
+      COSO Principle 12 — the entity deploys control activities through policies
+      that establish what is expected and in procedures that put policies into
+      action.
+
+  # ── CC6: Logical and Physical Access Controls ─────────────────────────────
+  - id: CC6.1
+    category: Security
+    description: >
+      Logical access security — the entity implements logical access security
+      measures to protect against threats from sources outside its system
+      boundaries. Includes controls for registration, authorisation, and
+      authentication of users.
+
+  - id: CC6.2
+    category: Security
+    description: >
+      Authentication — prior to issuing system credentials and granting system
+      access, the entity registers and authorises new internal and external users
+      and authenticates their identity.
+
+  - id: CC6.3
+    category: Security
+    description: >
+      Access removal — the entity removes access to protected information assets
+      when appropriate (e.g. upon termination, role change, or request).
+
+  - id: CC6.4
+    category: Security
+    description: >
+      Physical access — the entity restricts physical access to facilities and
+      protected information assets to authorised personnel.
+
+  - id: CC6.5
+    category: Security
+    description: >
+      Disposal — the entity discontinues logical and physical protections over
+      physical assets only after the ability to read or recover data and software
+      from those assets has been diminished.
+
+  - id: CC6.6
+    category: Security
+    description: >
+      Boundary protection — the entity implements controls to prevent or detect
+      and act upon the introduction of unauthorised or malicious software.
+
+  - id: CC6.7
+    category: Security
+    description: >
+      Transmission — the entity restricts the transmission, movement, and removal
+      of information to authorised internal and external users and processes, and
+      protects it during transmission, movement, or removal.
+
+  - id: CC6.8
+    category: Security
+    description: >
+      Malicious software — the entity implements controls to prevent or detect
+      and act upon the introduction of unauthorised or malicious software.
+
+  # ── CC7: System Operations ────────────────────────────────────────────────
+  - id: CC7.1
+    category: Security
+    description: >
+      Configuration management — to meet its objectives, the entity uses
+      detection and monitoring procedures to identify changes to configurations
+      that result in the introduction of new vulnerabilities.
+
+  - id: CC7.2
+    category: Security
+    description: >
+      Monitoring — the entity monitors system components and the operation of
+      controls through the use of detection and monitoring procedures to identify
+      potential or actual security events.
+
+  - id: CC7.3
+    category: Security
+    description: >
+      Evaluation of security events — the entity evaluates security events to
+      determine whether they could or have resulted in a failure of the entity
+      to meet its objectives (security incidents) and, if so, takes actions
+      to prevent or address such failures.
+
+  - id: CC7.4
+    category: Security
+    description: >
+      Incident response — the entity responds to identified security incidents
+      by executing a defined incident-response programme to understand, contain,
+      remediate, and communicate security incidents as appropriate.
+
+  - id: CC7.5
+    category: Security
+    description: >
+      Recovery — the entity identifies, develops, and implements activities to
+      recover from identified security incidents and communicates information
+      about the incidents to those involved in the recovery process.
+
+  # ── CC8: Change Management ────────────────────────────────────────────────
+  - id: CC8.1
+    category: Security
+    description: >
+      Change management — the entity authorises, designs, develops or acquires,
+      configures, documents, tests, approves, and implements changes to
+      infrastructure, data, software, and procedures to meet its objectives.
+
+  # ── CC9: Risk Mitigation ──────────────────────────────────────────────────
+  - id: CC9.1
+    category: Security
+    description: >
+      Risk mitigation — the entity identifies, selects, and develops risk
+      mitigation activities for risks arising from potential business disruptions.
+
+  - id: CC9.2
+    category: Security
+    description: >
+      Vendor and business partner management — the entity assesses and manages
+      risks associated with vendors and business partners.
+
+  # ── A1: Availability ──────────────────────────────────────────────────────
+  - id: A1.1
+    category: Availability
+    description: >
+      Capacity management — the entity maintains, monitors, and evaluates current
+      processing capacity and use of system components (infrastructure, data,
+      and software) to manage capacity demand and to enable the implementation
+      of additional capacity to help meet its objectives.
+
+  - id: A1.2
+    category: Availability
+    description: >
+      Environmental threats — the entity authorises, designs, develops or acquires,
+      implements, operates, approves, maintains, and monitors environmental
+      protections, software, data back-up processes, and recovery infrastructure
+      to meet its availability objectives.
+
+  - id: A1.3
+    category: Availability
+    description: >
+      Recovery plan testing — the entity tests recovery plan procedures supporting
+      system recovery to meet its availability objectives.
+
+  # ── PI1: Processing Integrity ─────────────────────────────────────────────
+  - id: PI1.1
+    category: Processing integrity
+    description: >
+      Processing integrity policies — the entity obtains or generates, uses, and
+      communicates relevant, quality information regarding the objectives related
+      to processing, including definitions of data processed and product and
+      service specifications, to support the use of products and services.
+
+  - id: PI1.2
+    category: Processing integrity
+    description: >
+      Inputs — the entity implements policies and procedures over system inputs,
+      including controls over completeness and accuracy, to result in products,
+      services, and reporting to meet the entity's objectives.
+
+  - id: PI1.3
+    category: Processing integrity
+    description: >
+      Processing — the entity implements policies and procedures over system
+      processing to result in products, services, and reporting to meet the
+      entity's objectives.
+
+  - id: PI1.4
+    category: Processing integrity
+    description: >
+      Outputs — the entity implements policies and procedures to make available
+      or deliver output completely, accurately, and timely in accordance with
+      specifications to meet the entity's objectives.
+
+  - id: PI1.5
+    category: Processing integrity
+    description: >
+      Stored data — the entity implements policies and procedures to store inputs,
+      items in processing, and outputs completely, accurately, and timely in
+      accordance with system specifications to meet the entity's objectives.
+
+  # ── C1: Confidentiality ───────────────────────────────────────────────────
+  - id: C1.1
+    category: Confidentiality
+    description: >
+      Confidential information identification — the entity identifies and
+      maintains confidential information to meet the entity's objectives related
+      to confidentiality.
+
+  - id: C1.2
+    category: Confidentiality
+    description: >
+      Confidential information disposal — the entity disposes of confidential
+      information to meet the entity's objectives related to confidentiality.
+
+  # ── P1–P8: Privacy ────────────────────────────────────────────────────────
+  - id: P1.1
+    category: Privacy
+    description: >
+      Privacy notice — the entity provides notice to data subjects about its
+      privacy practices to meet the entity's objectives related to privacy,
+      including the nature of personal information collected, how it is used,
+      and with whom it is shared.
+
+  - id: P2.1
+    category: Privacy
+    description: >
+      Choice and consent — the entity communicates choices available regarding
+      the collection, use, retention, disclosure, and disposal of personal
+      information, and obtains implicit or explicit consent with respect to
+      the collection, use, retention, disclosure, and disposal of personal
+      information.
+
+  - id: P3.1
+    category: Privacy
+    description: >
+      Collection — the entity collects personal information to meet its
+      objectives related to privacy.
+
+  - id: P3.2
+    category: Privacy
+    description: >
+      Explicit consent — for information requiring explicit consent, the entity
+      communicates the need for such consent to the data subject and obtains
+      consent prior to collection.
+
+  - id: P4.1
+    category: Privacy
+    description: >
+      Use of personal information — the entity limits the use of personal
+      information to the purposes identified in the entity's privacy notice.
+
+  - id: P4.2
+    category: Privacy
+    description: >
+      Retention — the entity retains personal information consistent with the
+      entity's objectives related to privacy.
+
+  - id: P4.3
+    category: Privacy
+    description: >
+      Disposal — the entity disposes of personal information consistent with
+      the entity's objectives related to privacy.
+
+  - id: P5.1
+    category: Privacy
+    description: >
+      Access — the entity grants identified and authenticated data subjects the
+      ability to access their stored personal information and corrects or amends
+      personal information, where appropriate.
+
+  - id: P5.2
+    category: Privacy
+    description: >
+      Correction — the entity corrects or amends personal information based on
+      objections, errors, or omissions identified by data subjects and distributes
+      corrections to third parties accordingly.
+
+  - id: P6.1
+    category: Privacy
+    description: >
+      Disclosure to third parties — the entity discloses personal information to
+      third parties with the explicit consent of the data subject or as required
+      by law, in accordance with its privacy notice.
+
+  - id: P6.2
+    category: Privacy
+    description: >
+      Third-party disclosure records — the entity maintains records of third
+      parties to which personal information has been disclosed and the purpose
+      for disclosure.
+
+  - id: P6.3
+    category: Privacy
+    description: >
+      Third-party privacy obligations — the entity obtains privacy commitments
+      from vendors and other parties who have access to personal information.
+
+  - id: P6.4
+    category: Privacy
+    description: >
+      Consistent third-party use — the entity obtains explicit consent of the
+      data subject prior to disclosing personal information to third parties
+      for purposes other than those identified in the notice.
+
+  - id: P6.5
+    category: Privacy
+    description: >
+      Privacy notice to third parties — the entity provides third parties with
+      privacy notice consistent with the entity's privacy notice communicated
+      to data subjects.
+
+  - id: P6.6
+    category: Privacy
+    description: >
+      Consistent disclosure — the entity discloses personal information to
+      third parties only for the purposes identified in the privacy notice and
+      with the explicit consent of the data subject.
+
+  - id: P6.7
+    category: Privacy
+    description: >
+      Breach notification — the entity provides notification of breaches and
+      incidents to affected data subjects, regulators, and others to meet
+      the entity's objectives related to privacy.
+
+  - id: P7.1
+    category: Privacy
+    description: >
+      Quality — the entity collects and maintains personal information that is
+      accurate, up-to-date, complete, and relevant for the purposes identified
+      in the privacy notice.
+
+  - id: P8.1
+    category: Privacy
+    description: >
+      Monitoring and enforcement — the entity monitors compliance with its
+      privacy objectives and related policies and procedures, and provides a
+      method for data subjects to submit inquiries, complaints, and disputes.

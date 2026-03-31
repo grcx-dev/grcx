@@ -1,0 +1,252 @@
+name: MAS Technology Risk Management Guidelines
+id: mas_trm
+description: >
+  Monetary Authority of Singapore Technology Risk Management Guidelines.
+  Sets out risk management principles and best practice standards to guide
+  financial institutions in managing technology risk.
+
+controls:
+  # ── Sections 3–4: Governance ──────────────────────────────────────────────
+  - id: TRM-3.1
+    category: Governance
+    description: >
+      Board and senior management responsibility — board must oversee the
+      establishment of a sound technology risk management framework and ensure
+      adequate resources are allocated to manage technology risk.
+
+  - id: TRM-3.2
+    category: Governance
+    description: >
+      Technology risk management framework — must establish a comprehensive
+      framework covering policies, standards, and processes for identifying,
+      measuring, monitoring, and controlling technology risk.
+
+  - id: TRM-3.3
+    category: Governance
+    description: >
+      Technology risk appetite — board must approve and review the technology
+      risk appetite, and ensure it is consistent with the overall risk appetite
+      of the institution.
+
+  - id: TRM-4.1
+    category: Governance
+    description: >
+      IT steering committee — must establish an IT steering committee at
+      senior management level to provide strategic direction and oversight of
+      IT plans, priorities, and expenditures.
+
+  - id: TRM-4.2
+    category: Governance
+    description: >
+      Chief Information Officer — must appoint a suitably qualified CIO or
+      equivalent to be responsible for strategic planning and management of
+      IT resources in alignment with business objectives.
+
+  - id: TRM-4.3
+    category: Governance
+    description: >
+      Technology risk function — must establish an independent technology risk
+      function responsible for identifying, assessing, and monitoring technology
+      risks across the institution.
+
+  # ── Section 5: Software Development ─────────────────────────────────────
+  - id: TRM-5.1
+    category: Software development
+    description: >
+      System development life cycle — must implement a robust SDLC methodology
+      covering requirements, design, development, testing, deployment, and
+      maintenance of systems.
+
+  - id: TRM-5.2
+    category: Software development
+    description: >
+      Project risk management — must establish a project management framework
+      to manage risks in technology projects, including scope, schedule, budget,
+      and resource management.
+
+  - id: TRM-5.3
+    category: Software development
+    description: >
+      Software quality assurance — must implement quality assurance processes
+      including code review, testing standards, and defect management to ensure
+      software quality and reliability.
+
+  - id: TRM-5.4
+    category: Software development
+    description: >
+      Change and release management — must implement controls to manage changes
+      to systems, including testing, approvals, and rollback procedures to
+      minimise operational disruption.
+
+  # ── Section 6: IT Service Management ────────────────────────────────────
+  - id: TRM-6.1
+    category: IT service management
+    description: >
+      IT service management framework — must implement a structured IT service
+      management framework covering incident, problem, change, and configuration
+      management processes.
+
+  - id: TRM-6.2
+    category: IT service management
+    description: >
+      Incident and problem management — must establish processes to detect,
+      report, and resolve IT incidents promptly, and conduct root cause analysis
+      to prevent recurrence.
+
+  - id: TRM-6.3
+    category: IT service management
+    description: >
+      Configuration management — must maintain accurate records of IT assets
+      and configurations, including relationships between components, to support
+      effective change and incident management.
+
+  # ── Section 7: System Reliability and Availability ───────────────────────
+  - id: TRM-7.1
+    category: System reliability
+    description: >
+      System availability targets — must define and monitor availability targets
+      for critical systems, with processes to measure, report, and continuously
+      improve availability performance.
+
+  - id: TRM-7.2
+    category: System reliability
+    description: >
+      Capacity management — must implement capacity management processes to
+      forecast and plan for future IT resource needs and prevent performance
+      degradation or outages.
+
+  - id: TRM-7.3
+    category: System reliability
+    description: >
+      Business continuity planning — must develop and maintain business continuity
+      plans for critical IT systems, including recovery time and recovery point
+      objectives aligned to business needs.
+
+  - id: TRM-7.4
+    category: System reliability
+    description: >
+      Recovery testing — must regularly test business continuity and disaster
+      recovery plans to validate their effectiveness and identify gaps.
+
+  # ── Section 8: Online Financial Services ─────────────────────────────────
+  - id: TRM-8.1
+    category: Online financial services
+    description: >
+      Online service risk management — must conduct comprehensive risk assessments
+      for online financial services and implement commensurate controls to manage
+      security, availability, and fraud risks.
+
+  - id: TRM-8.2
+    category: Online financial services
+    description: >
+      Customer authentication — must implement robust multi-factor authentication
+      for online financial services to protect customers from unauthorised access
+      and fraudulent transactions.
+
+  - id: TRM-8.3
+    category: Online financial services
+    description: >
+      Transaction monitoring — must implement real-time monitoring and anomaly
+      detection for online transactions to identify and prevent fraudulent activity.
+
+  # ── Section 9: IT Audit ───────────────────────────────────────────────────
+  - id: TRM-9.1
+    category: IT audit
+    description: >
+      IT audit function — must establish an independent IT audit function with
+      sufficient resources and expertise to assess the adequacy and effectiveness
+      of technology risk management controls.
+
+  - id: TRM-9.2
+    category: IT audit
+    description: >
+      IT audit programme — must develop and maintain a risk-based IT audit
+      programme covering all critical systems, processes, and controls on a
+      periodic basis.
+
+  - id: TRM-9.3
+    category: IT audit
+    description: >
+      Remediation tracking — must implement processes to track and verify
+      timely remediation of audit findings and ensure issues are escalated
+      appropriately to senior management.
+
+  # ── Sections 10–11: Cyber Security ────────────────────────────────────────
+  - id: TRM-10.1
+    category: Cyber security
+    description: >
+      Cyber security strategy — must develop and maintain a cyber security
+      strategy and framework aligned to the institution's risk profile and
+      approved by senior management.
+
+  - id: TRM-10.2
+    category: Cyber security
+    description: >
+      Vulnerability management — must implement processes for regular vulnerability
+      assessment and penetration testing of critical systems, with timely
+      remediation of identified vulnerabilities.
+
+  - id: TRM-10.3
+    category: Cyber security
+    description: >
+      Security operations — must establish security monitoring capabilities to
+      detect, analyse, and respond to cyber threats and security incidents in
+      a timely manner.
+
+  - id: TRM-11.1
+    category: Cyber security
+    description: >
+      Cyber incident response — must develop and maintain a cyber incident
+      response plan, including procedures for containment, eradication, recovery,
+      and post-incident review.
+
+  - id: TRM-11.2
+    category: Cyber security
+    description: >
+      Threat intelligence — must participate in industry threat intelligence
+      sharing and incorporate threat intelligence into security monitoring and
+      defensive measures.
+
+  # ── Section 12: Data Centres ──────────────────────────────────────────────
+  - id: TRM-12.1
+    category: Data centres
+    description: >
+      Data centre physical security — must implement robust physical security
+      controls for data centres, including access controls, surveillance, and
+      environmental monitoring.
+
+  - id: TRM-12.2
+    category: Data centres
+    description: >
+      Environmental controls — must implement appropriate environmental controls
+      including power redundancy, cooling, fire suppression, and flood protection
+      for data centre facilities.
+
+  - id: TRM-12.3
+    category: Data centres
+    description: >
+      Data centre resilience — must implement redundant infrastructure and
+      geographic separation for critical systems to ensure resilience against
+      data centre failures.
+
+  # ── Section 13: Access Control ────────────────────────────────────────────
+  - id: TRM-13.1
+    category: Access control
+    description: >
+      Access control policy — must implement a formal access control policy
+      based on least privilege and need-to-know principles, covering logical
+      and physical access to systems and data.
+
+  - id: TRM-13.2
+    category: Access control
+    description: >
+      Privileged access management — must implement enhanced controls for
+      privileged accounts, including strict approval processes, monitoring of
+      privileged activity, and regular review of access rights.
+
+  - id: TRM-13.3
+    category: Access control
+    description: >
+      Access reviews — must conduct regular reviews of user access rights to
+      critical systems to ensure access remains appropriate and is revoked
+      promptly when no longer required.

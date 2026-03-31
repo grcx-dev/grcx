@@ -1,0 +1,170 @@
+name: NIST Cybersecurity Framework v2.0
+id: nist_csf
+description: >
+  NIST Cybersecurity Framework version 2.0. Provides a taxonomy of high-level
+  cybersecurity outcomes that can be used by any organisation to better understand,
+  assess, prioritise, and communicate its cybersecurity efforts. Organised into
+  six Functions: Govern, Identify, Protect, Detect, Respond, Recover.
+
+controls:
+  # ── GV: Govern ────────────────────────────────────────────────────────────
+  - id: GV.OC
+    category: Govern
+    description: >
+      Organizational Context — the circumstances surrounding the organisation's
+      cybersecurity risk management decisions are understood, including mission,
+      stakeholder expectations, dependencies, and legal/regulatory requirements.
+
+  - id: GV.RM
+    category: Govern
+    description: >
+      Risk Management Strategy — the organisation's priorities, constraints,
+      risk tolerance, and assumptions are established and used to support
+      operational risk decisions.
+
+  - id: GV.RR
+    category: Govern
+    description: >
+      Roles, Responsibilities, and Authorities — cybersecurity roles and
+      responsibilities for the workforce and leadership are established,
+      communicated, understood, and enforced.
+
+  - id: GV.PO
+    category: Govern
+    description: >
+      Policy — organisational cybersecurity policy is established, communicated,
+      and enforced. Policy reflects the organisation's mission, legal and
+      regulatory requirements, risk appetite, and risk management strategy.
+
+  - id: GV.OV
+    category: Govern
+    description: >
+      Oversight — results of organisation-wide cybersecurity risk management
+      activities and performance are used to inform, improve, and adjust the
+      risk management strategy.
+
+  - id: GV.SC
+    category: Govern
+    description: >
+      Cybersecurity Supply Chain Risk Management — cyber supply chain risk
+      management processes are identified, established, managed, monitored,
+      and improved by organisational stakeholders.
+
+  # ── ID: Identify ──────────────────────────────────────────────────────────
+  - id: ID.AM
+    category: Identify
+    description: >
+      Asset Management — assets (data, hardware, software, systems, facilities,
+      services, people) that enable the organisation to achieve business purposes
+      are identified and managed consistent with their relative importance to
+      organisational objectives and the organisation's risk strategy.
+
+  - id: ID.RA
+    category: Identify
+    description: >
+      Risk Assessment — the cybersecurity risk to the organisation, assets, and
+      individuals is understood by the organisation. Includes identifying threats,
+      vulnerabilities, likelihoods, and impacts to prioritise risk responses.
+
+  - id: ID.IM
+    category: Identify
+    description: >
+      Improvement — improvements to organisational cybersecurity risk management
+      processes, procedures, and activities are identified across all CSF Functions.
+
+  # ── PR: Protect ───────────────────────────────────────────────────────────
+  - id: PR.AA
+    category: Protect
+    description: >
+      Identity Management, Authentication, and Access Control — access to physical
+      and logical assets is limited to authorised users, services, and hardware,
+      and managed commensurate with the assessed risk of unauthorised access.
+
+  - id: PR.AT
+    category: Protect
+    description: >
+      Awareness and Training — the organisation's personnel are provided with
+      cybersecurity awareness and training so that they can perform their
+      cybersecurity-related tasks.
+
+  - id: PR.DS
+    category: Protect
+    description: >
+      Data Security — data are managed consistent with the organisation's risk
+      strategy to protect the confidentiality, integrity, and availability of
+      information, including data-at-rest and data-in-transit.
+
+  - id: PR.PS
+    category: Protect
+    description: >
+      Platform Security — the hardware, software (including firmware and code),
+      and services of physical and virtual platforms are managed consistent with
+      the organisation's risk strategy to protect their confidentiality, integrity,
+      and availability.
+
+  - id: PR.IR
+    category: Protect
+    description: >
+      Technology Infrastructure Resilience — security architectures are managed
+      with the organisation's risk strategy to protect asset confidentiality,
+      integrity, and availability, and organisational resilience.
+
+  # ── DE: Detect ────────────────────────────────────────────────────────────
+  - id: DE.CM
+    category: Detect
+    description: >
+      Continuous Monitoring — assets are monitored to find anomalies, indicators
+      of compromise, and other potentially adverse events. Monitoring covers
+      networks, physical environments, personnel activity, and external sources.
+
+  - id: DE.AE
+    category: Detect
+    description: >
+      Adverse Event Analysis — anomalies, indicators of compromise, and other
+      potentially adverse events are analysed to characterise the events and
+      detect cybersecurity incidents. Impact of events is determined.
+
+  # ── RS: Respond ───────────────────────────────────────────────────────────
+  - id: RS.MA
+    category: Respond
+    description: >
+      Incident Management — responses to detected cybersecurity incidents are
+      managed. Includes execution of the incident response plan and coordination
+      with relevant parties.
+
+  - id: RS.AN
+    category: Respond
+    description: >
+      Incident Analysis — investigations are conducted to ensure effective
+      response and support forensics and recovery activities. Root cause analysis
+      and impact assessments are performed.
+
+  - id: RS.CO
+    category: Respond
+    description: >
+      Incident Response Reporting and Communication — response activities are
+      coordinated with internal and external stakeholders as required by laws,
+      regulations, or policies.
+
+  - id: RS.MI
+    category: Respond
+    description: >
+      Incident Mitigation — activities are performed to prevent expansion of an
+      event and mitigate its effects. Newly identified vulnerabilities are
+      mitigated or documented as accepted risks.
+
+  # ── RC: Recover ───────────────────────────────────────────────────────────
+  - id: RC.RP
+    category: Recover
+    description: >
+      Incident Recovery Plan Execution — restoration activities are performed
+      to ensure operational availability of systems and services affected by
+      cybersecurity incidents. Recovery plans are executed and validated.
+
+  - id: RC.CO
+    category: Recover
+    description: >
+      Incident Recovery Communication — restoration activities are coordinated
+      with internal and external parties, including coordinating centres,
+      internet service providers, owners of attacking systems, victims,
+      other CSIRTs, and vendors.
