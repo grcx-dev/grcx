@@ -13,7 +13,7 @@ sentinels:
     - type: imap
       host: ${GRCX_IMAP_HOST}
       username: ${GRCX_IMAP_USERNAME}
-      sender_filter: ack-website@mas.gov.sg
+      sender_filter: "@mas.gov.sg"
       jurisdiction: MAS
 
     - type: rss
@@ -27,29 +27,7 @@ sentinels:
     # SEC enforcement feeds (litigation releases, admin proceedings) return 403
     # from Akamai CDN for all automated clients — no working RSS available.
 
-    - type: rss
-      url: https://www.ecb.europa.eu/rss/press.html
-      jurisdiction: ECB
 
-    - type: rss
-      url: https://www.hkma.gov.hk/eng/other-information/rss/rss_guidelines.xml
-      jurisdiction: HKMA
-
-    - type: rss
-      url: https://www.hkma.gov.hk/eng/other-information/rss/rss_circulars.xml
-      jurisdiction: HKMA
-
-    - type: rss
-      url: https://www.hkma.gov.hk/eng/other-information/rss/rss_press-release.xml
-      jurisdiction: HKMA
-
-    - type: rss
-      url: https://www.bsp.gov.ph/_layouts/15/listfeed.aspx?List=68408d09%2D548e%2D40f5%2Db2fd%2D62d36e30fd3f&View=5580f386%2Dff60%2D40ff%2D8531%2D2b5259079a97
-      jurisdiction: BSP
-
-    - type: rss
-      url: https://www.dfsa.ae/rss
-      jurisdiction: DFSA
 
 controls:
   frameworks:
@@ -61,7 +39,7 @@ controls:
     - soc2
 
 resolver:
-  llm: models/gemini-2.5-flash
+  llm: claude-haiku-4-5-20251001
   auto_remediate: notify_only
 
 audit:
