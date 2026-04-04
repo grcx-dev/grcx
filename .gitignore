@@ -13,7 +13,6 @@ venv/
 *.egg
 
 # Audit dirs
-vigil-audit/
 grcx-audit/
 *.log
 

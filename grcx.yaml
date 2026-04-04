@@ -27,6 +27,10 @@ sentinels:
     # SEC enforcement feeds (litigation releases, admin proceedings) return 403
     # from Akamai CDN for all automated clients — no working RSS available.
 
+    - type: rss
+      url: https://www.esma.europa.eu/rss.xml
+      jurisdiction: ESMA
+
 
 
 controls:

@@ -100,7 +100,7 @@ def load_data():
     rows.sort(key=lambda r: r["timestamp"], reverse=True)
 
     # Stats
-    jurisdictions = ["BOE", "FCA", "MAS", "SEC"]
+    jurisdictions = ["BOE", "FCA", "MAS", "SEC", "ESMA"]
     jurisdiction_counts = defaultdict(int)
     for r in rows:
         jurisdiction_counts[r["jurisdiction"]] += 1
