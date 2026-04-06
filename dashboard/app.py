@@ -1,79 +1,157 @@
 # Copyright (c) 2026 Neil Lowden | GRCX | MIT License
 import json
 import os
+import sqlite3
 from collections import defaultdict
 from datetime import datetime, timezone
-from functools import wraps
 from pathlib import Path
 
-import jwt
-import requests
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "grcx-change-me-in-production")
 
 LOG_PATH = Path(__file__).parent.parent / "grcx-audit" / "grcx.log.jsonl"
+DB_PATH = Path(os.environ.get("GRCX_DB_PATH", Path(__file__).parent.parent / "grcx-audit" / "users.db"))
 
-# Clerk config
-CLERK_SECRET_KEY = os.environ.get("CLERK_SECRET_KEY", "")
-CLERK_PUBLISHABLE_KEY = os.environ.get("CLERK_PUBLISHABLE_KEY", "")
-CLERK_FRONTEND_API = os.environ.get("CLERK_FRONTEND_API", "")
+BLOCKED_DOMAINS = {
+    "gmail.com", "googlemail.com", "hotmail.com", "outlook.com",
+    "yahoo.com", "yahoo.co.uk", "aol.com", "icloud.com", "me.com",
+    "mail.com", "protonmail.com", "proton.me", "live.com", "msn.com",
+}
 
-# Cache JWKS
-_jwks_cache = None
+# ── Database ────────────────────────────────────────────────
 
-
-def _get_jwks():
-    global _jwks_cache
-    if _jwks_cache is None:
-        resp = requests.get(f"{CLERK_FRONTEND_API}/.well-known/jwks.json")
-        resp.raise_for_status()
-        _jwks_cache = resp.json()
-    return _jwks_cache
+def get_db():
+    db = sqlite3.connect(str(DB_PATH))
+    db.row_factory = sqlite3.Row
+    return db
 
 
-def _verify_session(token):
-    """Verify a Clerk session JWT. Returns claims dict or None."""
-    try:
-        jwks = _get_jwks()
-        # Get the signing key
-        header = jwt.get_unverified_header(token)
-        kid = header.get("kid")
-        key = None
-        for k in jwks.get("keys", []):
-            if k.get("kid") == kid:
-                key = jwt.algorithms.RSAAlgorithm.from_jwk(k)
-                break
-        if not key:
-            return None
-        claims = jwt.decode(
-            token,
-            key,
-            algorithms=["RS256"],
-            options={"verify_aud": False},
+def init_db():
+    db = get_db()
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            company TEXT NOT NULL DEFAULT '',
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
-        return claims
-    except Exception:
-        return None
+    """)
+    db.commit()
+    db.close()
 
 
-def require_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.cookies.get("__session")
-        if not token:
-            # Redirect to Clerk hosted sign-in
-            sign_in_url = "/sign-in"
-            return redirect(sign_in_url)
-        claims = _verify_session(token)
-        if not claims:
-            sign_in_url = "/sign-in"
-            return redirect(sign_in_url)
-        # Store user info for templates
-        request.clerk_user = claims
-        return f(*args, **kwargs)
-    return decorated
+init_db()
 
+# ── Flask-Login ─────────────────────────────────────────────
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "sign_in"
+login_manager.login_message = ""
+
+
+class User(UserMixin):
+    def __init__(self, id, email, name, company):
+        self.id = id
+        self.email = email
+        self.name = name
+        self.company = company
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    db.close()
+    if row:
+        return User(row["id"], row["email"], row["name"], row["company"])
+    return None
+
+
+# ── Auth routes ─────────────────────────────────────────────
+
+@app.route("/sign-up", methods=["GET", "POST"])
+def sign_up():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        name = request.form.get("name", "").strip()
+        company = request.form.get("company", "").strip()
+        password = request.form.get("password", "")
+
+        if not email or not name or not password:
+            error = "All fields are required."
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters."
+        elif not company:
+            error = "Company name is required."
+        else:
+            domain = email.split("@")[-1] if "@" in email else ""
+            if domain in BLOCKED_DOMAINS:
+                error = "Please use your work email address."
+            else:
+                db = get_db()
+                existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+                if existing:
+                    error = "An account with this email already exists."
+                else:
+                    db.execute(
+                        "INSERT INTO users (email, name, company, password_hash) VALUES (?, ?, ?, ?)",
+                        (email, name, company, generate_password_hash(password)),
+                    )
+                    db.commit()
+                    row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+                    user = User(row["id"], row["email"], row["name"], row["company"])
+                    login_user(user)
+                    db.close()
+                    return redirect(url_for("dashboard"))
+                db.close()
+
+    return render_template("sign-up.html", error=error)
+
+
+@app.route("/sign-in", methods=["GET", "POST"])
+def sign_in():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        db = get_db()
+        row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        db.close()
+
+        if row and check_password_hash(row["password_hash"], password):
+            user = User(row["id"], row["email"], row["name"], row["company"])
+            login_user(user, remember=True)
+            next_page = request.args.get("next")
+            return redirect(next_page or url_for("dashboard"))
+        else:
+            error = "Invalid email or password."
+
+    return render_template("sign-in.html", error=error)
+
+
+@app.route("/sign-out")
+@login_required
+def sign_out():
+    logout_user()
+    return redirect(url_for("sign_in"))
+
+
+# ── Data loading ────────────────────────────────────────────
 
 def _parse_ts(ts: str) -> datetime:
     try:
@@ -86,9 +164,8 @@ def load_data():
     if not LOG_PATH.exists():
         return {}
 
-    publications = {}   # fingerprint -> pub entry (regulatory.new_publication)
-    assessments = defaultdict(list)  # fingerprint -> [assessment, ...]
-
+    publications = {}
+    assessments = defaultdict(list)
     last_updated = None
 
     with open(LOG_PATH) as f:
@@ -134,18 +211,14 @@ def load_data():
                     "publication_title": entry["detail"].get("publication_title", ""),
                 })
 
-    # Build unified rows — one row per publication, with any assessments attached
     rows = []
     for fp, pub in publications.items():
         pub_assessments = assessments.get(fp, [])
-
-        # Derive severity from highest assessment
         sev_order = {"critical": 3, "warning": 2, "info": 1}
         severity = "info"
         if pub_assessments:
             severity = max(pub_assessments, key=lambda a: sev_order.get(a["severity"], 0))["severity"]
 
-        # Group assessments by framework
         by_framework = defaultdict(list)
         for a in pub_assessments:
             by_framework[a["framework"]].append(a)
@@ -160,10 +233,8 @@ def load_data():
             "recommended_action": pub_assessments[0]["recommended_action"] if pub_assessments else "",
         })
 
-    # Sort newest first
     rows.sort(key=lambda r: r["timestamp"], reverse=True)
 
-    # Stats
     jurisdictions = ["BOE", "FCA", "MAS", "SEC", "ESMA"]
     jurisdiction_counts = defaultdict(int)
     for r in rows:
@@ -183,16 +254,13 @@ def load_data():
         "last_updated": last_updated.strftime("%d %b %Y %H:%M UTC") if last_updated else "—",
     }
 
-@app.route("/sign-in")
-def sign_in():
-    return render_template("sign-in.html", clerk_publishable_key=CLERK_PUBLISHABLE_KEY)
+
+# ── Dashboard ───────────────────────────────────────────────
 
 @app.route("/")
-@require_auth
+@login_required
 def dashboard():
     data = load_data()
-    data["clerk_publishable_key"] = CLERK_PUBLISHABLE_KEY
-    data["clerk_frontend_api"] = CLERK_FRONTEND_API
     return render_template("dashboard.html", **data)
 
 
