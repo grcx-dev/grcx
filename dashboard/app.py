@@ -63,11 +63,11 @@ def require_auth(f):
         token = request.cookies.get("__session")
         if not token:
             # Redirect to Clerk hosted sign-in
-            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url=https://app.grcx.dev/"
+            sign_in_url = "/sign-in"
             return redirect(sign_in_url)
         claims = _verify_session(token)
         if not claims:
-            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url=https://app.grcx.dev/"
+            sign_in_url = "/sign-in"
             return redirect(sign_in_url)
         # Store user info for templates
         request.clerk_user = claims
@@ -183,6 +183,9 @@ def load_data():
         "last_updated": last_updated.strftime("%d %b %Y %H:%M UTC") if last_updated else "—",
     }
 
+@app.route("/sign-in")
+def sign_in():
+    return render_template("sign-in.html", clerk_publishable_key=CLERK_PUBLISHABLE_KEY)
 
 @app.route("/")
 @require_auth
