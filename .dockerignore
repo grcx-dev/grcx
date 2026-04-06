@@ -1,0 +1,12 @@
+.venv
+.git
+__pycache__
+*.pyc
+.DS_Store
+.env
+grcx-audit
+demo.gif
+.claude
+.vscode
+grcx.egg-info
+uv.lock

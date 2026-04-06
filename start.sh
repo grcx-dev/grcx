@@ -1,6 +1,5 @@
 #!/bin/bash
-# Start the sentinel watcher in the background
+mkdir -p /data/grcx-audit
+ln -sfn /data/grcx-audit /app/grcx-audit
 grcx watch --poll 900 &
-
-# Start Flask in the foreground
 python -m flask --app dashboard.app run --host 0.0.0.0 --port 5001
