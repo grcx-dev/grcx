@@ -63,11 +63,11 @@ def require_auth(f):
         token = request.cookies.get("__session")
         if not token:
             # Redirect to Clerk hosted sign-in
-            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url={request.url}"
+            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url=https://app.grcx.dev/"
             return redirect(sign_in_url)
         claims = _verify_session(token)
         if not claims:
-            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url={request.url}"
+            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url=https://app.grcx.dev/"
             return redirect(sign_in_url)
         # Store user info for templates
         request.clerk_user = claims
