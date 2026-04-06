@@ -1,14 +1,78 @@
 # Copyright (c) 2026 Neil Lowden | GRCX | MIT License
 import json
+import os
 from collections import defaultdict
 from datetime import datetime, timezone
+from functools import wraps
 from pathlib import Path
 
-from flask import Flask, render_template
+import jwt
+import requests
+from flask import Flask, redirect, render_template, request
 
 app = Flask(__name__)
 
 LOG_PATH = Path(__file__).parent.parent / "grcx-audit" / "grcx.log.jsonl"
+
+# Clerk config
+CLERK_SECRET_KEY = os.environ.get("CLERK_SECRET_KEY", "")
+CLERK_PUBLISHABLE_KEY = os.environ.get("CLERK_PUBLISHABLE_KEY", "")
+CLERK_FRONTEND_API = os.environ.get("CLERK_FRONTEND_API", "")
+
+# Cache JWKS
+_jwks_cache = None
+
+
+def _get_jwks():
+    global _jwks_cache
+    if _jwks_cache is None:
+        resp = requests.get(f"{CLERK_FRONTEND_API}/.well-known/jwks.json")
+        resp.raise_for_status()
+        _jwks_cache = resp.json()
+    return _jwks_cache
+
+
+def _verify_session(token):
+    """Verify a Clerk session JWT. Returns claims dict or None."""
+    try:
+        jwks = _get_jwks()
+        # Get the signing key
+        header = jwt.get_unverified_header(token)
+        kid = header.get("kid")
+        key = None
+        for k in jwks.get("keys", []):
+            if k.get("kid") == kid:
+                key = jwt.algorithms.RSAAlgorithm.from_jwk(k)
+                break
+        if not key:
+            return None
+        claims = jwt.decode(
+            token,
+            key,
+            algorithms=["RS256"],
+            options={"verify_aud": False},
+        )
+        return claims
+    except Exception:
+        return None
+
+
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.cookies.get("__session")
+        if not token:
+            # Redirect to Clerk hosted sign-in
+            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url={request.url}"
+            return redirect(sign_in_url)
+        claims = _verify_session(token)
+        if not claims:
+            sign_in_url = f"{CLERK_FRONTEND_API}/sign-in?redirect_url={request.url}"
+            return redirect(sign_in_url)
+        # Store user info for templates
+        request.clerk_user = claims
+        return f(*args, **kwargs)
+    return decorated
 
 
 def _parse_ts(ts: str) -> datetime:
@@ -121,13 +185,15 @@ def load_data():
 
 
 @app.route("/")
+@require_auth
 def dashboard():
     data = load_data()
+    data["clerk_publishable_key"] = CLERK_PUBLISHABLE_KEY
+    data["clerk_frontend_api"] = CLERK_FRONTEND_API
     return render_template("dashboard.html", **data)
 
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("GRCX_DASHBOARD_PORT", "5001"))
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     app.run(debug=debug, port=port)

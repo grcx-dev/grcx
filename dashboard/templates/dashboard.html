@@ -337,6 +337,7 @@
   <div class="header-meta">
     <span><span class="pulse"></span> Live</span>
     <span>Last updated: <strong style="color:var(--white)">{{ last_updated }}</strong></span>
+    <a href="#" onclick="Clerk.signOut().then(() => window.location.reload())" style="color:var(--gray-400);font-size:13px;text-decoration:none;margin-left:12px;">Sign out</a>
   </div>
 </header>
 
@@ -615,5 +616,12 @@
   // Apply default filter on load (flagged only)
   applyFilters();
 </script>
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="{{ clerk_publishable_key }}"
+  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+  type="text/javascript"
+></script>
 </body>
 </html>
