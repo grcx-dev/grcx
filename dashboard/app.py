@@ -16,11 +16,11 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "grcx-change-me-in-productio
 LOG_PATH = Path(__file__).parent.parent / "grcx-audit" / "grcx.log.jsonl"
 DB_PATH = Path(os.environ.get("GRCX_DB_PATH", Path(__file__).parent.parent / "grcx-audit" / "users.db"))
 
-BLOCKED_DOMAINS = {
-    "gmail.com", "googlemail.com", "hotmail.com", "outlook.com",
-    "yahoo.com", "yahoo.co.uk", "aol.com", "icloud.com", "me.com",
-    "mail.com", "protonmail.com", "proton.me", "live.com", "msn.com",
-}
+# BLOCKED_DOMAINS = {
+#     "gmail.com", "googlemail.com", "hotmail.com", "outlook.com",
+#     "yahoo.com", "yahoo.co.uk", "aol.com", "icloud.com", "me.com",
+#     "mail.com", "protonmail.com", "proton.me", "live.com", "msn.com",
+# }
 
 # ── Database ────────────────────────────────────────────────
 
@@ -95,27 +95,22 @@ def sign_up():
         elif not company:
             error = "Company name is required."
         else:
-            domain = email.split("@")[-1] if "@" in email else ""
-            if domain in BLOCKED_DOMAINS:
-                error = "Please use your work email address."
+            db = get_db()
+            existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+            if existing:
+                error = "An account with this email already exists."
             else:
-                db = get_db()
-                existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
-                if existing:
-                    error = "An account with this email already exists."
-                else:
-                    db.execute(
-                        "INSERT INTO users (email, name, company, password_hash) VALUES (?, ?, ?, ?)",
-                        (email, name, company, generate_password_hash(password)),
-                    )
-                    db.commit()
-                    row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-                    user = User(row["id"], row["email"], row["name"], row["company"])
-                    login_user(user)
-                    db.close()
-                    return redirect(url_for("dashboard"))
+                db.execute(
+                    "INSERT INTO users (email, name, company, password_hash) VALUES (?, ?, ?, ?)",
+                    (email, name, company, generate_password_hash(password)),
+                )
+                db.commit()
+                row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+                user = User(row["id"], row["email"], row["name"], row["company"])
+                login_user(user)
                 db.close()
-
+                return redirect(url_for("dashboard"))
+            db.close()
     return render_template("sign-up.html", error=error)
 
 
