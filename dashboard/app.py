@@ -2,6 +2,8 @@
 import json
 import os
 import sqlite3
+import smtplib
+from email.mime.text import MIMEText
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -73,6 +75,28 @@ def load_user(user_id):
         return User(row["id"], row["email"], row["name"], row["company"])
     return None
 
+def notify_signup(name, email, company):
+    """Send signup notification to founder."""
+    try:
+        msg = MIMEText(
+            f"New GRCX signup:\n\n"
+            f"Name: {name}\n"
+            f"Email: {email}\n"
+            f"Company: {company}\n"
+        )
+        msg["Subject"] = f"New GRCX signup: {name} ({company})"
+        msg["From"] = os.environ.get("GRCX_SMTP_USER", "notifications@grcx.dev")
+        msg["To"] = "neil.lowden@gmail.com"
+
+        with smtplib.SMTP(os.environ.get("GRCX_SMTP_HOST", "mail.grcx.dev"), 587) as s:
+            s.starttls()
+            s.login(
+                os.environ.get("GRCX_SMTP_USER", "notifications@grcx.dev"),
+                os.environ.get("GRCX_SMTP_PASS", ""),
+            )
+            s.send_message(msg)
+    except Exception as e:
+        app.logger.error(f"Signup notification failed: {e}")
 
 # ── Auth routes ─────────────────────────────────────────────
 
@@ -108,6 +132,7 @@ def sign_up():
                 row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
                 user = User(row["id"], row["email"], row["name"], row["company"])
                 login_user(user)
+                notify_signup(name, email, company)
                 db.close()
                 return redirect(url_for("dashboard"))
             db.close()
