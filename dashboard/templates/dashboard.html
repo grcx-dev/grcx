@@ -122,7 +122,7 @@
     }
 
     /* ── Main ────────────────────────────────────────────────────── */
-    .main { flex: 1; padding: 24px; min-width: 0; }
+    .main { flex: 1; padding: 24px; min-width: 0; overflow-y: auto; height: calc(100vh - 64px); }
 
     /* ── Summary cards ───────────────────────────────────────────── */
     .stat-grid {
@@ -186,15 +186,17 @@
       background: var(--navy-card);
       border: 1px solid rgba(255,255,255,0.07);
       border-radius: var(--radius);
-      overflow: hidden;
+      overflow: auto;
+      max-height: calc(100vh - 340px);
     }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     thead th {
-      background: rgba(255,255,255,0.04);
+      background: var(--navy-card);
       padding: 10px 14px; text-align: left;
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
       color: var(--gray-400); font-weight: 600; white-space: nowrap;
       border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: sticky; top: 0; z-index: 10;
     }
     tbody tr {
       border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -341,6 +343,45 @@
   </div>
 </header>
 
+<!-- First-run orientation popover -->
+<div id="orientation-overlay" style="
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.3s ease;
+">
+  <div style="
+    background: var(--navy-card);
+    border: 1px solid var(--teal);
+    border-radius: 12px;
+    padding: 2.5rem;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  ">
+<div style="font-size: 1.5rem; font-weight: 700; color: var(--teal-light); margin-bottom: 1rem;">Welcome to GRCX 👋</div>
+    <div style="color: var(--gray-300); font-size: 0.95rem; line-height: 1.8; margin-bottom: 0.75rem;">
+      Your dashboard is monitoring <strong style="color:var(--white);">five financial regulators</strong> — BoE, FCA, MAS, SEC and ESMA — in real time.
+    </div>
+    <div style="color: var(--gray-300); font-size: 0.95rem; line-height: 1.8; margin-bottom: 0.75rem;">
+      When new publications land, our AI maps them to your <strong style="color:var(--white);">compliance frameworks</strong> and flags what needs your attention — so you can skip the noise and focus on what matters.
+    </div>
+    <div style="color: var(--gray-300); font-size: 0.95rem; line-height: 1.8; margin-bottom: 1.5rem;">
+      Use the sidebar to filter by regulator or severity. Click any item to see the full assessment.
+    </div>    <button onclick="document.getElementById('orientation-overlay').remove(); localStorage.setItem('grcx_banner_dismissed','1');" style="
+      background: var(--teal); color: var(--white); border: none;
+      padding: 0.7rem 2rem; border-radius: 6px; font-size: 0.95rem;
+      font-weight: 600; cursor: pointer; width: 100%;
+    ">Got it — show me the dashboard</button>
+  </div>
+</div>
+<script>
+  if (localStorage.getItem('grcx_banner_dismissed')) {
+    var b = document.getElementById('orientation-overlay');
+    if (b) b.remove();
+  }
+</script>
+
 <div class="layout">
 
   <!-- Sidebar -->
@@ -420,7 +461,7 @@
       <div class="section-title">Publications</div>
       <div class="filter-bar">
         <input type="text" id="searchInput" placeholder="Search title or summary…" oninput="applyFilters()">
-        <button class="filter-btn active" id="btn-flagged" onclick="toggleFlagged()">Flagged only</button>
+        <button class="filter-btn" id="btn-flagged" onclick="toggleFlagged()">Flagged only</button>
       </div>
     </div>
 
@@ -584,9 +625,16 @@
     });
   }
 
+  // function toggleFlagged() {
+  //   showFlaggedOnly = !showFlaggedOnly;
+  //   document.getElementById('btn-flagged').classList.toggle('active', showFlaggedOnly);
+  //   applyFilters();
+  // }
   function toggleFlagged() {
     showFlaggedOnly = !showFlaggedOnly;
-    document.getElementById('btn-flagged').classList.toggle('active', showFlaggedOnly);
+    var btn = document.getElementById('btn-flagged');
+    btn.classList.toggle('active', showFlaggedOnly);
+    btn.textContent = showFlaggedOnly ? '✓ Flagged only' : 'Flagged only';
     applyFilters();
   }
 
