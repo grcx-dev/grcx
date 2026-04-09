@@ -22,6 +22,7 @@ dependencies = [
     "cryptography>=42.0.0",
     "flask>=3.0.0",
     "google-genai>=1.0.0",
+    "flask-login>=0.6.3",
 ]
 
 [project.scripts]

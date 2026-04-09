@@ -1,0 +1,299 @@
+name: DORA — Digital Operational Resilience Act (EU) 2022/2554
+id: dora
+description: >
+  EU regulation strengthening digital operational resilience of financial
+  entities by harmonising rules on ICT risk management, incident reporting,
+  resilience testing, third-party risk oversight, and information sharing.
+  Applicable from 17 January 2025. Covers 20+ types of financial entities
+  including banks, insurers, investment firms, payment institutions,
+  crypto-asset service providers, and their critical ICT third-party
+  service providers.
+
+controls:
+  # ── Chapter II: ICT Risk Management (Articles 5–16) ───────────────────────
+  - id: Art. 5
+    category: ICT risk management
+    description: >
+      Governance and organisation — management body defines, approves,
+      oversees and is accountable for the ICT risk management framework.
+      Members must maintain adequate ICT knowledge and skills, updated
+      through regular training.
+
+  - id: Art. 6
+    category: ICT risk management
+    description: >
+      ICT risk management framework — comprehensive, documented framework
+      reviewed at least annually. Includes strategies, policies, procedures,
+      protocols and tools to protect all information and ICT assets. Must be
+      audited internally on a regular basis. Includes a digital operational
+      resilience strategy.
+
+  - id: Art. 7
+    category: ICT risk management
+    description: >
+      ICT systems, protocols and tools — use and maintain updated ICT
+      systems, protocols and tools appropriate to the scale and complexity
+      of operations. Systems must be reliable, have sufficient capacity,
+      and be technologically resilient.
+
+  - id: Art. 8
+    category: ICT risk management
+    description: >
+      Identification — identify, classify and document all ICT-supported
+      business functions, roles, information and ICT assets. Maintain
+      inventories including assets provided by third parties. Map ICT
+      asset interdependencies. Identify all sources of ICT risk.
+
+  - id: Art. 9
+    category: ICT risk management
+    description: >
+      Protection and prevention — ICT security policies, procedures and
+      tools to ensure the security and functioning of ICT systems. Covers
+      access control, authentication, encryption, network security, patch
+      management, and ICT change management.
+
+  - id: Art. 10
+    category: ICT risk management
+    description: >
+      Detection — mechanisms to promptly detect anomalous activities on
+      ICT systems including network performance issues, ICT-related
+      incidents and potential single points of failure. Multi-layer
+      monitoring and alerting.
+
+  - id: Art. 11
+    category: ICT risk management
+    description: >
+      Response and recovery — ICT business continuity policy addressing
+      ICT-related incidents. Response and recovery plans activated upon
+      detection. Recovery time estimates, impact assessment, communication
+      plans for staff, stakeholders and public. Crisis management function.
+
+  - id: Art. 12
+    category: ICT risk management
+    description: >
+      Backup policies and procedures, restoration and recovery — backup
+      policies specifying scope, frequency and retention. Backup systems
+      physically and logically separated from source. Regular testing of
+      backup and restoration procedures. Minimum downtime and data loss
+      objectives.
+
+  - id: Art. 13
+    category: ICT risk management
+    description: >
+      Learning and evolving — capabilities to gather and analyse
+      post-incident information including root causes. Mandatory
+      post-incident reviews for major incidents. Lessons learned shared
+      across the organisation.
+
+  - id: Art. 14
+    category: ICT risk management
+    description: >
+      Communication — communication plans covering ICT-related incidents
+      and vulnerabilities. Differentiated approaches for internal
+      stakeholders, clients, counterparts, and the public. Designated
+      spokesperson for public communications.
+
+  - id: Art. 15
+    category: ICT risk management
+    description: >
+      Further harmonisation of ICT risk management tools, methods,
+      processes and policies — ESAs develop RTS specifying ICT security
+      policies, human resources policy, access control, ICT change
+      management, ICT project management, acquisition and development
+      of ICT systems, encryption, and network security management.
+
+  - id: Art. 16
+    category: ICT risk management
+    description: >
+      Simplified ICT risk management framework — proportionate reduced
+      framework for smaller financial entities (small non-interconnected
+      investment firms, payment/e-money institutions below thresholds).
+      Core risk management, monitoring, protection, and recovery
+      requirements without full complexity.
+
+  # ── Chapter III: ICT-Related Incident Management, Classification
+  #                 and Reporting (Articles 17–23) ───────────────────────────
+  - id: Art. 17
+    category: Incident management
+    description: >
+      ICT-related incident management process — define, establish and
+      implement an incident management process to detect, manage and
+      notify ICT-related incidents. Early warning indicators, classification
+      procedures, roles and responsibilities. Record all significant
+      cyber threats.
+
+  - id: Art. 18
+    category: Incident management
+    description: >
+      Classification of ICT-related incidents and cyber threats — classify
+      incidents based on clients/counterparts affected, duration,
+      geographical spread, data losses, criticality of services affected,
+      and economic impact. Classify significant cyber threats by
+      criticality and likelihood.
+
+  - id: Art. 19
+    category: Incident management
+    description: >
+      Reporting of major ICT-related incidents — report to competent
+      authority using standardised templates: initial notification,
+      intermediate report, and final report. Voluntary notification of
+      significant cyber threats. Inform clients when incident may impact
+      their financial interests.
+
+  - id: Art. 20
+    category: Incident management
+    description: >
+      Harmonisation of reporting content and templates — ESAs develop
+      common reporting templates, timelines and procedures for incident
+      reporting. Standard formats for initial, intermediate and final
+      reports. RTS on content, timelines and thresholds for determining
+      major incidents.
+
+  - id: Art. 21
+    category: Incident management
+    description: >
+      Centralisation of reporting — ESAs to assess feasibility of
+      establishing a single EU Hub for major ICT-related incident
+      reporting.
+
+  - id: Art. 22
+    category: Incident management
+    description: >
+      Supervisory feedback — competent authorities provide feedback or
+      guidance to financial entities after receiving major incident
+      reports. ESAs share anonymised information on cyber threats and
+      vulnerabilities.
+
+  - id: Art. 23
+    category: Incident management
+    description: >
+      Operational or security payment-related incidents — specific
+      reporting requirements for credit institutions, payment
+      institutions, account information service providers, and electronic
+      money institutions. Overlapping PSD2 incident reporting obligations
+      streamlined under DORA.
+
+  # ── Chapter IV: Digital Operational Resilience Testing
+  #                (Articles 24–27) ──────────────────────────────────────────
+  - id: Art. 24
+    category: Resilience testing
+    description: >
+      General requirements for digital operational resilience testing —
+      establish, maintain and review a testing programme as an integral
+      part of the ICT risk management framework. Range of assessments,
+      tests, methodologies, practices and tools. Proportionate to size,
+      risk profile and business complexity.
+
+  - id: Art. 25
+    category: Resilience testing
+    description: >
+      Testing of ICT tools and systems — vulnerability assessments and
+      scans, open source analyses, network security assessments, gap
+      analyses, physical security reviews, source code reviews,
+      scenario-based tests, compatibility testing, performance testing,
+      end-to-end testing, and penetration testing.
+
+  - id: Art. 26
+    category: Resilience testing
+    description: >
+      Advanced testing by means of TLPT — threat-led penetration testing
+      for significant financial entities, at least every three years.
+      Must cover critical or important functions, use threat intelligence,
+      and involve live production systems. Pooled testing permitted.
+      TIBER-EU framework referenced.
+
+  - id: Art. 27
+    category: Resilience testing
+    description: >
+      Requirements for testers carrying out TLPT — testers must be
+      certified with expertise in threat intelligence, penetration
+      testing, and red-team testing. Independence and objectivity
+      requirements. Internal testers permitted under conditions with
+      external threat intelligence provider.
+
+  # ── Chapter V: Managing of ICT Third-Party Risk (Articles 28–44) ─────────
+  - id: Art. 28
+    category: Third-party risk
+    description: >
+      General principles — financial entities remain fully responsible
+      for compliance regardless of outsourcing. Must adopt and review a
+      strategy on ICT third-party risk including a policy on use of ICT
+      services supporting critical or important functions. Maintain a
+      register of information on all contractual arrangements with ICT
+      third-party providers, reported annually to competent authorities.
+
+  - id: Art. 29
+    category: Third-party risk
+    description: >
+      Preliminary assessment of ICT concentration risk at entity level —
+      before entering contractual arrangements, assess whether the
+      arrangement would lead to ICT concentration risk. Consider
+      substitutability, multiple arrangements with the same provider,
+      and consequences of disruption.
+
+  - id: Art. 30
+    category: Third-party risk
+    description: >
+      Key contractual provisions — mandatory provisions for ICT service
+      contracts including service level descriptions, data location and
+      processing, availability guarantees, data access and recovery,
+      audit rights, cooperation with authorities, termination rights,
+      exit strategies, and subcontracting conditions. Additional
+      requirements for critical or important functions.
+
+  - id: Art. 31
+    category: Third-party risk
+    description: >
+      Designation of critical ICT third-party service providers — ESAs
+      designate critical providers (CTPPs) based on systemic impact,
+      substitutability, and number/importance of financial entities
+      relying on them.
+
+  - id: Art. 32
+    category: Third-party risk
+    description: >
+      Structure of the Oversight Framework — Lead Overseer appointed
+      from among ESAs for each CTPP. Oversight Forum established.
+      Joint Examination Teams. Coordination between Lead Overseer
+      and competent authorities.
+
+  - id: Art. 33
+    category: Third-party risk
+    description: >
+      Tasks of the Lead Overseer — assess whether CTPPs have
+      comprehensive and effective rules, procedures and controls to
+      manage ICT risk posed to financial entities. Covers security,
+      physical security, risk management, governance, incident handling,
+      data portability, testing, audits and subcontracting.
+
+  - id: Art. 35
+    category: Third-party risk
+    description: >
+      Powers of the Lead Overseer — may request information, conduct
+      investigations and inspections, issue recommendations, and require
+      remediation of deficiencies. Penalty payments for non-compliance.
+
+  - id: Art. 40
+    category: Third-party risk
+    description: >
+      Ongoing oversight — Lead Overseer conducts ongoing monitoring of
+      CTPPs. Annual assessment plan. Monitoring of compliance with
+      recommendations.
+
+  - id: Art. 44
+    category: Third-party risk
+    description: >
+      Cooperation between ESAs and competent authorities — exchange of
+      information for oversight purposes. Competent authorities may
+      require financial entities to transition away from CTPPs or reduce
+      exposure where material deficiencies are identified.
+
+  # ── Chapter VI: Information-Sharing Arrangements (Article 45) ─────────────
+  - id: Art. 45
+    category: Information sharing
+    description: >
+      Information-sharing arrangements — financial entities may exchange
+      cyber threat information and intelligence among themselves within
+      trusted communities. Must protect personal data and business
+      confidentiality. Notified to competent authorities. Aimed at
+      enhancing collective digital operational resilience.
