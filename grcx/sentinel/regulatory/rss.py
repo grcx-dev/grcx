@@ -53,14 +53,19 @@ class RssSentinel:
 
     def fetch(self) -> list[RegulatoryItem]:
         """Fetch the feed and return only items we haven't seen before."""
-        try:
-            response = httpx.get(
-                self.url, timeout=15, follow_redirects=True, headers=HEADERS
-            )
-            response.raise_for_status()
-        except Exception as e:
-            console.print(f"[red][{self.jurisdiction}] Feed fetch failed: {e}[/red]")
-            return []
+        timeout = httpx.Timeout(connect=10.0, read=45.0, write=10.0, pool=10.0)
+        for attempt in range(2):
+            try:
+                response = httpx.get(
+                    self.url, timeout=timeout, follow_redirects=True, headers=HEADERS
+                )
+                response.raise_for_status()
+                break
+            except Exception as e:
+                if attempt == 0:
+                    continue
+                console.print(f"[red][{self.jurisdiction}] Feed fetch failed: {e}[/red]")
+                return []
 
         items = self._parse(response.text)
         new_items = [i for i in items if i.fingerprint not in self._seen]
