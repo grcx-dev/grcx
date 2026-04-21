@@ -1,197 +1,145 @@
 # GRCX
 
-**The regulatory compliance monitoring agent that never sleeps.**
+> Open source regulatory radar for financial services compliance teams.
 
-GRCX watches your infrastructure and regulatory feeds simultaneously. When something drifts — a new circular, a broken control, a policy conflict — it diagnoses the issue, executes the remediation, and writes an immutable audit trail. Automatically.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Author:** Neil Lowden
+GRCX monitors publications from financial regulators — consultation papers, policy statements, Dear CEO letters, supervisory notices — and maps each one against your control frameworks as they land. When the FCA publishes something on Tuesday morning, GRCX catches it within its next polling cycle and tells you which of your controls are affected.
 
-![GRCX Demo](demo.gif)
----
+Every regulatory change management tool on the market is closed source and enterprise-priced. GRCX is the only open source option.
 
-## What just happened
-
-```
-03:14:07  [GRCX] New circular detected: MAS TRM 2025-003
-03:14:09  [GRCX] Scanning 47 registered controls...
-03:14:23  [GRCX] ⚠️  3 controls affected
-           → TRM-12: Patch cadence policy — BREACHED (new 72hr requirement, current: 7 days)
-           → TRM-31: Encryption standard — REVIEW REQUIRED (TLS 1.2 now deprecated)
-           → TRM-44: Vendor risk assessment — BREACHED (annual → semi-annual required)
-03:14:24  [GRCX] Remediating TRM-12...
-03:17:11  [GRCX] ✅ TRM-12 resolved — patch policy updated, PR #847 raised, reviewer assigned
-03:17:12  [GRCX] ✅ TRM-31 resolved — deprecation ticket opened, infra team notified
-03:17:13  [GRCX] 🔴 TRM-44 requires human sign-off — ticket #1203 raised, CISO notified
-03:17:14  [GRCX] Audit log written → grcx-audit-2025-03-14T03:17:14Z.json
-```
-
-That happened while you slept.
+**Live:** [grcx.dev](https://grcx.dev) · [app.grcx.dev](https://app.grcx.dev)
 
 ---
 
-## The problem GRCX solves
+## Why this exists
 
-Compliance in a regulated fintech is a moving target. Regulators publish new circulars. Infrastructure drifts from policy. Controls that passed last quarter fail today. And when your auditor asks what happened at 03:14 on a Tuesday in March, you need an answer.
+Compliance teams in regulated fintech are drowning in volume. The FCA alone publishes hundreds of items a year. Add the Bank of England, the SEC, MAS, and ESMA, and the reading backlog runs to weeks per publication when triaged manually.
 
-Existing monitoring tools watch infrastructure. Existing GRC tools track policies. **Nothing connects the two automatically, in real time, with a full audit trail.**
+Existing tools — CUBE, Archer Evolv, Ascent, Regology — are filing cabinets. They help compliance teams manage the controls they already know about. None of them are radar: none detect new regulatory publications and map them to affected controls before the team is even aware.
 
-That's GRCX.
+GRCX is radar.
+
+---
+
+## What it does
+
+- **Monitors** regulators via their published feeds (IMAP, RSS, HTTP) — currently BoE, FCA, MAS, SEC, and ESMA.
+- **Maps** each new publication to your control frameworks using an LLM.
+- **Triages** — assesses severity, highlights affected controls, and surfaces a prioritised queue.
+- **Audits** — writes every detection and assessment to a cryptographically chained audit log (SHA-256, append-only, verifiable).
+- **Surfaces** everything in a live dashboard with jurisdiction filtering, severity badges, and flagged-only triage.
+
+Every assessment is subject to human override. Compliance tools are trust products — GRCX augments the compliance team's judgement, it doesn't replace it. Overrides feed back into the resolver, improving accuracy over time.
+
+---
+
+## Control frameworks
+
+Built-in:
+
+- ISO 27001
+- FCA SYSC
+- MAS TRM
+- NIST CSF
+- BCBS 239
+- SOC 2
+
+Custom frameworks via YAML are always supported.
 
 ---
 
 ## Architecture
 
+Three layers:
+
 ```
-┌─────────────────────────────────────────────────────────┐
-│                         GRCX                            │
-│                                                         │
-│  ┌──────────────┐   ┌──────────────┐   ┌─────────────┐ │
-│  │   SENTINEL   │   │   RESOLVER   │   │  AUDIT LOG  │ │
-│  │              │   │              │   │             │ │
-│  │ Watches:     │──▶│ Diagnoses    │──▶│ Immutable   │ │
-│  │ • Reg feeds  │   │ root cause   │   │ append-only │ │
-│  │ • Infra state│   │              │   │ record of   │ │
-│  │ • Policy docs│   │ Executes or  │   │ every       │ │
-│  │ • Control DB │   │ escalates    │   │ action      │ │
-│  └──────────────┘   └──────────────┘   └─────────────┘ │
-└─────────────────────────────────────────────────────────┘
-         │                    │
-         ▼                    ▼
-   Slack / Telegram     GitHub / Jira
-   PagerDuty            Your ticketing system
+┌───────────────┐    ┌───────────────┐    ┌───────────────┐
+│   SENTINEL    │ →  │   RESOLVER    │ →  │   AUDIT LOG   │
+│               │    │               │    │               │
+│  Ingests      │    │  LLM maps to  │    │  SHA-256      │
+│  regulator    │    │  frameworks,  │    │  chained,     │
+│  feeds (IMAP, │    │  assesses     │    │  append-only, │
+│  RSS, HTTP)   │    │  severity     │    │  verifiable   │
+└───────────────┘    └───────────────┘    └───────────────┘
+                            ↓
+                     ┌─────────────┐
+                     │  DASHBOARD  │
+                     │             │
+                     │  Triage +   │
+                     │  overrides  │
+                     └─────────────┘
 ```
 
-**Sentinel** — ingests regulatory feeds (PDF circulars, RSS, structured APIs), infrastructure state (Terraform, Kubernetes, cloud configs), and your control framework.
-
-**Resolver** — uses an LLM to reason about the gap between current state and required state, then executes safe remediations or escalates to humans with a full diagnosis.
-
-**Audit Log** — append-only, cryptographically signed, human-readable JSON. Your auditor's best friend.
+Adding a new regulator is a config change in `grcx.yaml`, not a code change.
 
 ---
 
 ## Quickstart
 
 ```bash
-pip install grcx
-grcx init
-grcx watch --config grcx.yaml
+git clone https://github.com/grcx-dev/grcx.git
+cd grcx
+uv sync
+
+cp .env.example .env      # add your Anthropic API key and SMTP config
+source .env
+
+grcx watch --poll 900
 ```
 
-`grcx.yaml`:
-
-```yaml
-sentinels:
-  regulatory:
-    - type: rss
-      url: https://www.mas.gov.sg/publications/circulars
-      jurisdiction: MAS
-    - type: pdf_watch
-      path: ./circulars/
-      jurisdiction: local
-
-  infrastructure:
-    - type: terraform_state
-      path: ./terraform/
-    - type: kubernetes
-      context: prod-cluster
-
-controls:
-  framework: iso27001      # or: mas-trm, bsp-2023, fca-sysc, custom
-  path: ./controls/
-
-resolver:
-  llm: claude-3-5-sonnet   # or: gpt-4o, local (ollama)
-  auto_remediate: safe      # safe | aggressive | notify_only
-  escalation:
-    channel: slack
-    webhook: ${SLACK_WEBHOOK}
-
-audit:
-  output: ./grcx-audit/
-  sign: true
-```
+In a separate terminal, run the dashboard:
 
 ```bash
-grcx watch
+flask --app dashboard.app run --port 5001
 ```
 
-### Running from source
+Open [http://localhost:5001](http://localhost:5001).
 
-```bash
-# Terminal 1 — watcher
-.venv/bin/grcx watch
-
-# Terminal 2 — dashboard (http://localhost:5001)
-.venv/bin/python dashboard/app.py
-```
+See [`grcx.yaml`](grcx.yaml) for the full configuration reference — regulator feeds, active frameworks, resolver backend, audit log location, alerting.
 
 ---
 
-## Control frameworks supported
+## Hosted version
 
-| Framework | Status |
-|-----------|--------|
-| ISO 27001 | ✅ Built-in |
-| MAS TRM | ✅ Built-in |
-| BSP MORB / DITO | ✅ Built-in |
-| FCA SYSC | ✅ Built-in |
-| DORA | 🚧 In progress |
-| SOC 2 | 🚧 In progress |
-| Custom YAML | ✅ Always supported |
+The open source engine is free under MIT. A hosted commercial version — GRCX Cloud — is available at [app.grcx.dev](https://app.grcx.dev):
 
----
+- **Starter** — $1,000/mo
+- **Pro** — $3,000/mo
+- **Enterprise** — $10,000+/mo
 
-## Remediation modes
-
-| Mode | Behaviour |
-|------|-----------|
-| `notify_only` | Detects and alerts. No automated action. |
-| `safe` | Executes low-risk remediations (open tickets, update docs, raise PRs). Escalates anything requiring human judgement. |
-| `aggressive` | Executes all remediations it can. Escalates only what it genuinely cannot do. |
-
-Start with `notify_only`. Move to `safe` once you trust the audit log.
-
----
-
-## Who built this
-
-GRCX was created by [Neil Lowden](https://github.com/neillowden) — 30 years in financial services infrastructure across Goldman Sachs, UBS, and Credit Suisse First Boston, now building at the intersection of AI and regulated ops.
-
-The infrastructure was never the problem. The problem was the gap between what the regulator published on Monday and what the controls actually said on Tuesday. That gap is where fines live. GRCX closes it.
-
----
-
-## Contributing
-
-GRCX is MIT licensed and actively welcoming contributors.
-
-The most useful things right now:
-
-- **Regulatory feed parsers** — if you know a jurisdiction's circular format, build a parser
-- **Control framework mappings** — YAML definitions for frameworks not yet built-in
-- **Resolver strategies** — better remediation logic for specific control types
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get started.
-
-Good first issues are tagged [`good-first-issue`](https://github.com/grcxdev/grcx/issues?q=is%3Aissue+label%3Agood-first-issue).
+14-day free trial.
 
 ---
 
 ## Roadmap
 
-- [x] Sentinel core (regulatory + infra feeds)
-- [x] Resolver with audit log
-- [x] MAS TRM, BSP, FCA, ISO 27001 built-in frameworks
-- [ ] DORA framework
-- [ ] SOC 2 framework
-- [ ] Web UI (audit log explorer)
-- [ ] GRCX Cloud (hosted feed hub — commercial)
-- [ ] Multi-tenant enterprise mode
+- DORA framework
+- GDPR framework
+- Trading exchange feeds
+- Cross-jurisdictional regulatory intelligence (contradiction detection, ambiguity surfacing, drift tracking)
+- Integrations: Jira, PagerDuty, Slack
+
+---
+
+## Contributing
+
+GRCX is MIT licensed and welcomes contributors. The most useful contributions right now:
+
+- Regulatory feed parsers for jurisdictions not yet covered
+- Control framework YAML definitions for frameworks not yet built-in
+- Resolver prompt improvements for specific framework/jurisdiction combinations
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged `good-first-issue`.
+
+---
+
+## Who built this
+
+GRCX is built by Neil Lowden, drawing on 30+ years of financial services infrastructure at Credit Suisse First Boston, Goldman Sachs, and UBS.
 
 ---
 
 ## Licence
 
-MIT — see [LICENSE](./LICENSE)
-
-The regulatory feed hub (real-time parsed circulars, pre-mapped controls) will be offered as a commercial hosted service. The core agent is and will remain open source.
+MIT — see [LICENSE](LICENSE).
