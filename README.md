@@ -134,12 +134,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged `good-first
 
 ---
 
-## Who built this
-
-GRCX is built by Neil Lowden, drawing on 30+ years of financial services infrastructure at Credit Suisse First Boston, Goldman Sachs, and UBS.
-
----
-
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
