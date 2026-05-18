@@ -17,10 +17,9 @@ class AuditLog:
     making tampering detectable.
     """
 
-    def __init__(self, log_dir: str = "grcx-audit", sign: bool = False):
+    def __init__(self, log_dir: str = "grcx-audit"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        self.sign = sign
         self.log_path = self.log_dir / "grcx.log.jsonl"
         self._last_hash = self._compute_last_hash()
 

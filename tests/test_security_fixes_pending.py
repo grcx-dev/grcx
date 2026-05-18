@@ -453,22 +453,8 @@ def test_session_cookie_has_samesite_strict_or_lax(csrf_disabled_app_client):
 # Section 6: AuditLog sign parameter cleanup (finding #5)
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #5 AuditLog(sign=True) accepted but silently ignored — after fix: either parameter is removed (TypeError) OR entries have a 'signature' field")
 def test_audit_log_sign_parameter_either_works_or_removed(tmp_audit_dir):
-    """
-    After the fix, exactly ONE of these must be true:
-
-    Option A — parameter removed:
-        AuditLog(log_dir=..., sign=True) raises TypeError because 'sign' no
-        longer exists. This is the honest option per SECURITY_REVIEW finding #5.
-
-    Option B — signing implemented:
-        AuditLog(log_dir=..., sign=True) is accepted AND each written entry
-        contains a 'signature' field with a non-empty value.
-
-    Today: sign=True is silently accepted and entries have no 'signature' field
-    — neither option A nor option B is true. The parameter is a lie.
-    """
+    """AuditLog(sign=True) must raise TypeError (parameter removed) or produce a 'signature' field."""
     from grcx.audit.log import AuditLog
 
     try:
