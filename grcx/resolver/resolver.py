@@ -113,12 +113,21 @@ class Resolver:
         self.audit = audit
         self.mode = config.get("resolver", {}).get("auto_remediate", "notify_only")
         self.llm = config.get("resolver", {}).get("llm", "claude-sonnet-4-6")
+        # Special sentinel: route via the `claude` CLI (subscription auth) instead
+        # of the Anthropic SDK (API-key billing). Requires `claude` on PATH.
+        self._use_claude_cli = self.llm == "claude-cli"
         self._use_gemini = "gemini" in self.llm
-        self._use_ollama = not self.llm.startswith("claude-") and not self._use_gemini
-        if not self._use_ollama and not self._use_gemini:
-            self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"), max_retries=0)
+        self._use_ollama = (
+            not self._use_claude_cli
+            and not self._use_gemini
+            and not self.llm.startswith("claude-")
+        )
+        if self._use_claude_cli:
+            pass  # subprocess-based; no SDK client to initialise
         elif self._use_gemini:
             self.gemini = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        elif not self._use_ollama:
+            self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"), max_retries=0)
 
         # Support both `framework: id` (single) and `frameworks: [id, id]` (multi)
         controls_cfg = config.get("controls", {})
@@ -169,7 +178,27 @@ class Resolver:
         )
 
         try:
-            if self._use_ollama:
+            if self._use_claude_cli:
+                import subprocess
+                result = subprocess.run(
+                    ["claude", "-p", "--output-format", "json"],
+                    input=prompt,
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                )
+                if result.returncode != 0:
+                    raise RuntimeError(
+                        f"claude CLI failed (exit {result.returncode}): "
+                        f"{result.stderr.strip()[:200]}"
+                    )
+                envelope = json.loads(result.stdout)
+                if envelope.get("is_error"):
+                    raise RuntimeError(
+                        f"claude CLI returned error: {envelope.get('result', '')[:200]}"
+                    )
+                raw = (envelope.get("result") or "").strip()
+            elif self._use_ollama:
                 response = httpx.post(
                     f"{_OLLAMA_HOST}/api/chat",
                     json={

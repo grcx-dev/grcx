@@ -100,6 +100,44 @@ See [`grcx.yaml`](grcx.yaml) for the full configuration reference — regulator 
 
 ---
 
+## Resolver backends
+
+The LLM that maps publications to controls is configurable via `resolver.llm` in `grcx.yaml`. Four backends are supported:
+
+| `resolver.llm` value | Backend | How it bills | Requires |
+|---|---|---|---|
+| `claude-haiku-4-5-…` / `claude-sonnet-4-…` / any `claude-*` model id | Anthropic SDK | **API tokens** charged against `ANTHROPIC_API_KEY` | `ANTHROPIC_API_KEY` env var |
+| `claude-cli` (sentinel) | Shells out to the `claude` CLI | **Claude Pro/Max subscription** of the user running the watcher (no per-token $) | `claude` CLI installed and authenticated on the host (see below) |
+| `gemini-…` (e.g. `gemini-2.5-flash`) | Google Gen AI SDK | Google API key — free tier covers grcx volume | `GEMINI_API_KEY` env var |
+| anything else (e.g. `llama3.3:70b`) | Local Ollama | Free / local compute only | Ollama running on `http://localhost:11434` (override with `OLLAMA_HOST`) |
+
+### Using `claude-cli` (subscription auth, no API bill)
+
+If you have a Claude Pro / Max / Team subscription, set `resolver.llm: claude-cli` in `grcx.yaml`. The resolver will shell out to the standalone `claude` CLI for each assessment, authenticating as the logged-in user — **no Anthropic API tokens are consumed**.
+
+**Prerequisite — install the standalone `claude` CLI on the host that runs `grcx watch`:**
+
+```bash
+npm install -g @anthropic-ai/claude-code
+# or, no-npm install:
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+Then authenticate it once (`claude` and follow the login prompt). The VS Code / JetBrains Claude Code extensions ship their own embedded runtime and do **not** put `claude` on your shell PATH, so the standalone CLI install is required even if you already use the extension.
+
+Verify with:
+
+```bash
+which claude && echo "say hi" | claude -p --output-format json
+```
+
+Caveats:
+
+- Each call ships ~30k tokens of Claude Code system-prompt context per invocation, so a busy `grcx watch` consumes Max-cap budget faster than a raw Anthropic SDK call would. Real-dollar cost is still $0 as long as you stay within the subscription cap.
+- The host running `grcx watch` must remain logged in to the Claude account being used; if auth expires the resolver will start writing `resolver.error` audit entries until you re-authenticate.
+
+---
+
 ## Hosted version
 
 The open source engine is free under MIT. A hosted commercial version — GRCX Cloud — is available at [app.grcx.dev](https://app.grcx.dev):

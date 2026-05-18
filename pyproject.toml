@@ -25,9 +25,33 @@ dependencies = [
     "flask-login>=0.6.3",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-mock>=3.12.0",
+    "respx>=0.21.0",
+    "freezegun>=1.4.0",
+]
+
 [project.scripts]
 grcx = "grcx.cli:cli"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["grcx*"]
+include = ["grcx*", "dashboard*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+markers = [
+    "live: tests that hit real external networks (RSS feeds, IMAP, LLM APIs); skipped by default",
+]
+
+[tool.mutmut]
+paths_to_mutate = ["grcx/audit/log.py"]
+# Mutmut runs from inside its mutants/ subdir, so we override pytest's testpaths
+# (which would otherwise auto-discover the whole tests/ directory) and pass an
+# absolute --rootdir so the listed test files resolve correctly.
+runner = ".venv/bin/python -m pytest -x -q --override-ini='testpaths=' --rootdir=/Users/nicolaijohannesen/Desktop/dev/grcx /Users/nicolaijohannesen/Desktop/dev/grcx/tests/test_audit_log.py /Users/nicolaijohannesen/Desktop/dev/grcx/tests/test_audit_log_corruption.py /Users/nicolaijohannesen/Desktop/dev/grcx/tests/test_audit_chain_stress.py /Users/nicolaijohannesen/Desktop/dev/grcx/tests/test_fingerprint.py"
+do_not_mutate = ["__init__.py"]

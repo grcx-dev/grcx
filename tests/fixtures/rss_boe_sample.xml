@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Bank of England Publications</title>
+    <link>https://www.bankofengland.co.uk/</link>
+    <description>Latest publications from the Bank of England</description>
+    <item>
+      <title>Bank Resolution Standards Instrument 2026</title>
+      <link>https://www.bankofengland.co.uk/prudential-regulation/publication/2026/february/bank-resolution-standards-instrument-2026</link>
+      <pubDate>Thu, 12 Feb 2026 10:00:00 GMT</pubDate>
+      <description>The PRA has published the Bank Resolution Standards Instrument 2026, amending technical standards relating to COREP13 reporting requirements for resolution planning.</description>
+    </item>
+    <item>
+      <title>Capital Buffers Review — Consultation Paper CP3/26</title>
+      <link>https://www.bankofengland.co.uk/prudential-regulation/publication/2026/january/capital-buffers-cp3-26</link>
+      <pubDate>Wed, 15 Jan 2026 09:30:00 GMT</pubDate>
+      <description>Consultation on proposed changes to the countercyclical capital buffer framework.</description>
+    </item>
+    <item>
+      <title>Speech by Governor: The future of digital sterling</title>
+      <link>https://www.bankofengland.co.uk/speech/2026/january/governor-digital-sterling</link>
+      <pubDate>Mon, 06 Jan 2026 14:00:00 GMT</pubDate>
+      <description>Remarks delivered at the Royal Society of Arts.</description>
+    </item>
+  </channel>
+</rss>
