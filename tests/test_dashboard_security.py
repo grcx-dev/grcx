@@ -27,7 +27,8 @@ def app_env(monkeypatch, tmp_path, tmp_audit_dir):
     app_module.init_db()
 
     app_module.app.config["TESTING"] = True
-    app_module.app.config["WTF_CSRF_ENABLED"] = False
+    monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", False)
+    app_module.limiter.reset()
 
     client = app_module.app.test_client()
     return client, db_path, log_path

@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import Flask, redirect, render_template, request, url_for
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +21,12 @@ if not _secret_key:
     raise RuntimeError("FLASK_SECRET_KEY environment variable is not set")
 app.secret_key = _secret_key
 csrf = CSRFProtect(app)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    storage_uri="memory://",
+    default_limits=[],
+)
 
 LOG_PATH = Path(__file__).parent.parent / "grcx-audit" / "grcx.log.jsonl"
 DB_PATH = Path(os.environ.get("GRCX_DB_PATH", Path(__file__).parent.parent / "grcx-audit" / "users.db"))
@@ -106,6 +114,7 @@ def notify_signup(name, email, company):
 # ── Auth routes ─────────────────────────────────────────────
 
 @app.route("/sign-up", methods=["GET", "POST"])
+@limiter.limit("3 per minute", methods=["POST"])
 def sign_up():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
@@ -145,6 +154,7 @@ def sign_up():
 
 
 @app.route("/sign-in", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"])
 def sign_in():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))

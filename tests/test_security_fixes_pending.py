@@ -37,6 +37,7 @@ def security_app_client(monkeypatch, tmp_path, tmp_audit_dir):
     app_module.app.config["TESTING"] = True
     # Explicitly enable CSRF — guard against earlier tests leaving it disabled.
     monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", True)
+    app_module.limiter.reset()
 
     return app_module.app.test_client()
 
@@ -60,6 +61,7 @@ def csrf_disabled_app_client(monkeypatch, tmp_path, tmp_audit_dir):
 
     app_module.app.config["TESTING"] = True
     monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", False)
+    app_module.limiter.reset()
 
     return app_module.app.test_client()
 
@@ -324,15 +326,8 @@ def test_fetch_page_title_allows_known_regulator(monkeypatch):
 # Section 4: Rate limiting (finding #4)
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #4 No rate limiting on /sign-in — 6th attempt should return 429")
 def test_signin_rate_limited_after_5_attempts(csrf_disabled_app_client):
-    """
-    After the fix: the 6th POST to /sign-in (regardless of credentials) within
-    a short window must return HTTP 429 Too Many Requests.
-
-    Today: all requests succeed (return 200 with invalid-credentials error),
-    because flask-limiter is not installed or configured.
-    """
+    """6th POST to /sign-in within a minute must return 429."""
     client = csrf_disabled_app_client
     data = {"email": "bruteforce@corp.com", "password": "wrong"}
 
@@ -350,14 +345,8 @@ def test_signin_rate_limited_after_5_attempts(csrf_disabled_app_client):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #4 No rate limiting on /sign-up — 4th attempt should return 429")
 def test_signup_rate_limited_after_3_attempts(csrf_disabled_app_client):
-    """
-    After the fix: the 4th POST to /sign-up within a short window must return
-    HTTP 429 Too Many Requests.
-
-    Today: all requests proceed normally; no rate limit exists.
-    """
+    """4th POST to /sign-up within a minute must return 429."""
     client = csrf_disabled_app_client
 
     for attempt in range(3):

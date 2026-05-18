@@ -27,6 +27,7 @@ def ui_client(monkeypatch, tmp_path, tmp_audit_dir):
     app_module.init_db()
     app_module.app.config["TESTING"] = True
     monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", False)
+    app_module.limiter.reset()
 
     return app_module.app.test_client()
 
