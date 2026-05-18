@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GRCX — Regulatory Intelligence</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   <style>
     /* ── Reset & base ───────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +35,7 @@
     }
     html { font-size: 15px; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--navy);
       color: var(--white);
       min-height: 100vh;
@@ -244,8 +250,12 @@
       background: rgba(255,255,255,0.07); color: var(--gray-400);
       font-family: ui-monospace, monospace; white-space: nowrap;
     }
-    .ctrl-tag.iso { background: rgba(59,130,246,0.1); color: #93C5FD; }
-    .ctrl-tag.sysc { background: rgba(245,158,11,0.1); color: #FCD34D; }
+    .ctrl-tag.iso  { background: rgba(59,130,246,0.1);  color: #93C5FD; }
+    .ctrl-tag.sysc { background: rgba(245,158,11,0.1);  color: #FCD34D; }
+    .ctrl-tag.trm  { background: rgba(167,139,250,0.1); color: #C4B5FD; }
+    .ctrl-tag.nist { background: rgba(52,211,153,0.1);  color: #6EE7B7; }
+    .ctrl-tag.bcbs { background: rgba(251,113,133,0.1); color: #FCA5A5; }
+    .ctrl-tag.soc2 { background: rgba(251,146,60,0.1);  color: #FDBA74; }
 
     /* ── Expandable detail ────────────────────────────────────────── */
     .expand-btn {
@@ -299,6 +309,10 @@
     }
     .detail-fw-label.iso  { color: #93C5FD; }
     .detail-fw-label.sysc { color: #FCD34D; }
+    .detail-fw-label.trm  { color: #C4B5FD; }
+    .detail-fw-label.nist { color: #6EE7B7; }
+    .detail-fw-label.bcbs { color: #FCA5A5; }
+    .detail-fw-label.soc2 { color: #FDBA74; }
 
     /* ── Empty state ──────────────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 24px; color: var(--gray-500); }
@@ -322,14 +336,17 @@
     }
   </style>
 </head>
+{% macro fw_class(fw_id) %}{% set f = fw_id.lower() %}{% if 'sysc' in f %}sysc{% elif 'nist' in f %}nist{% elif 'trm' in f or 'mas' in f %}trm{% elif 'bcbs' in f %}bcbs{% elif 'soc2' in f %}soc2{% else %}iso{% endif %}{% endmacro %}
+{% macro fw_label(fw_id) %}{% set f = fw_id.lower() %}{% if 'sysc' in f %}FCA SYSC{% elif 'nist' in f %}NIST CSF{% elif 'trm' in f or 'mas' in f %}MAS TRM{% elif 'bcbs' in f %}BCBS 239{% elif 'soc2' in f %}SOC 2{% else %}ISO 27001{% endif %}{% endmacro %}
 <body>
 
 <!-- Header -->
 <header class="header">
   <a class="header-logo" href="/">
-    <svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 2L3 7V18C3 25.5 8.8 32.4 16 34C23.2 32.4 29 25.5 29 18V7L16 2Z" stroke="#0D9488" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M16 2L3 7V18C3 25.5 8.8 32.4 16 34C23.2 32.4 29 25.5 29 18V7L16 2Z" fill="#0D9488" fill-opacity="0.12"/>
+    <svg fill="none" viewBox="0 0 32 32" height="32" width="32" xmlns="http://www.w3.org/2000/svg">
+      <path opacity="0.9" fill="#0D9488" d="M16 2L4 8v8c0 8.4 5.12 16.24 12 18 6.88-1.76 12-9.6 12-18V8L16 2z"></path>
+      <path fill="#0D9488" d="M16 2L4 8v8c0 8.4 5.12 16.24 12 18V2z"></path>
+      <path opacity="0.3" fill="#0F1A2E" d="M16 6L8 10v6c0 5.6 3.41 10.83 8 12V6z"></path>
     </svg>
     <div>
       <div class="logo-text">GRCX</div>
@@ -510,7 +527,7 @@
                 {% for a in row.assessments %}
                   {% set fw = a.framework %}
                   {% for c in a.affected_controls %}
-                    <span class="ctrl-tag {% if 'sysc' in fw.lower() %}sysc{% else %}iso{% endif %}">{{ c }}</span>
+                    <span class="ctrl-tag {{ fw_class(fw) }}">{{ c }}</span>
                   {% endfor %}
                 {% endfor %}
               </div>
@@ -533,13 +550,11 @@
                 <div class="detail-fw-row">
                   {% for fw_id, fw_assessments in row.by_framework.items() %}
                   <div class="detail-fw-block">
-                    <div class="detail-fw-label {% if 'sysc' in fw_id.lower() %}sysc{% else %}iso{% endif %}">
-                      {% if 'sysc' in fw_id.lower() %}FCA SYSC{% else %}ISO 27001{% endif %}
-                    </div>
+                    <div class="detail-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}</div>
                     <div class="ctrl-tags" style="margin-bottom:8px">
                       {% for a in fw_assessments %}
                         {% for c in a.affected_controls %}
-                          <span class="ctrl-tag {% if 'sysc' in fw_id.lower() %}sysc{% else %}iso{% endif %}">{{ c }}</span>
+                          <span class="ctrl-tag {{ fw_class(fw_id) }}">{{ c }}</span>
                         {% endfor %}
                       {% endfor %}
                     </div>

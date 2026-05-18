@@ -105,6 +105,112 @@ def audit(log_dir, do_verify, tail):
 
     console.print(table)
 
+@cli.command("backfill-titles")
+@click.option("--log-dir", default="grcx-audit", help="Audit log directory.", show_default=True)
+@click.option("--dry-run", is_flag=True, help="Preview changes without writing.")
+def backfill_titles(log_dir, dry_run):
+    """Fix existing log entries where the publication title is a bare URL."""
+    import hashlib
+    import json
+    from pathlib import Path
+    from grcx.sentinel.regulatory.imap_email import fetch_page_title
+
+    log_path = Path(log_dir) / "grcx.log.jsonl"
+    if not log_path.exists():
+        console.print(f"[red]Log file not found: {log_path}[/red]")
+        return
+
+    lines = log_path.read_text().strip().splitlines()
+    entries = []
+    for line in lines:
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    _JUNK_PATTERNS = ("/newsletter", "/form/newsletter", "unsubscribe", "optout", "/confirm/remove")
+
+    def _is_junk(url: str) -> bool:
+        return any(p in url for p in _JUNK_PATTERNS)
+
+    to_fix = [
+        e for e in entries
+        if e.get("event_type") == "regulatory.new_publication"
+        and e.get("summary", "").startswith("https://")
+    ]
+
+    if not to_fix:
+        console.print("[green]No URL-titled entries found — nothing to fix.[/green]")
+        return
+
+    junk = [e for e in to_fix if _is_junk(e.get("summary", ""))]
+    fixable = [e for e in to_fix if not _is_junk(e.get("summary", ""))]
+    console.print(f"Found [yellow]{len(fixable)}[/yellow] to fix, [red]{len(junk)}[/red] junk to purge.")
+
+    if dry_run:
+        for e in fixable:
+            console.print(f"  [yellow]fix[/yellow]  {e['timestamp'][:10]} {e['summary'][:80]}")
+        for e in junk:
+            console.print(f"  [red]purge[/red] {e['timestamp'][:10]} {e['summary'][:80]}")
+        return
+
+    junk_fps = {e["detail"].get("fingerprint") for e in junk}
+    entries = [e for e in entries if e.get("detail", {}).get("fingerprint") not in junk_fps]
+
+    fixed = 0
+    # Track fingerprint swaps per seen-file so we can update them after
+    # { seen_file_path: [(old_fp, new_fp), ...] }
+    fp_updates: dict[str, list[tuple[str, str]]] = {}
+
+    for entry in entries:
+        if (entry.get("event_type") == "regulatory.new_publication"
+                and entry.get("summary", "").startswith("https://")):
+            url = entry["summary"]
+            title = fetch_page_title(url)
+            if title:
+                console.print(f"  [green]✓[/green] {title[:70]}")
+
+                old_fp = hashlib.sha256(f"{url}{url}".encode()).hexdigest()[:16]
+                new_fp = hashlib.sha256(f"{url}{title}".encode()).hexdigest()[:16]
+
+                feed_url = entry.get("detail", {}).get("feed_url", "")
+                jur = (entry.get("jurisdiction") or "unknown").lower()
+                seen_file = Path(log_dir) / (
+                    f"seen_{jur}_email.txt" if feed_url.startswith("imap://")
+                    else f"seen_{jur}.txt"
+                )
+                fp_updates.setdefault(str(seen_file), []).append((old_fp, new_fp))
+
+                entry["summary"] = title
+                fixed += 1
+            else:
+                console.print(f"  [yellow]![/yellow] Could not fetch title for {url[:70]}")
+
+    # Rebuild the hash chain from scratch
+    def _hash_entry(entry: dict) -> str:
+        hashable = {k: v for k, v in entry.items() if k != "entry_hash"}
+        return hashlib.sha256(json.dumps(hashable, sort_keys=True).encode()).hexdigest()
+
+    prev_hash = "genesis"
+    for entry in entries:
+        entry["prev_hash"] = prev_hash
+        entry["entry_hash"] = _hash_entry(entry)
+        prev_hash = entry["entry_hash"]
+
+    log_path.write_text("\n".join(json.dumps(e) for e in entries) + "\n")
+
+    # Update seen fingerprint files so the next poll doesn't re-process fixed items
+    for seen_path_str, swaps in fp_updates.items():
+        seen_path = Path(seen_path_str)
+        seen = set(seen_path.read_text().splitlines()) if seen_path.exists() else set()
+        for old_fp, new_fp in swaps:
+            seen.discard(old_fp)
+            seen.add(new_fp)
+        seen_path.write_text("\n".join(seen))
+
+    console.print(f"\n[bold green]✓[/bold green] Fixed {fixed} entries, rebuilt hash chain, updated seen fingerprints.")
+
+
 def _default_config():
     return """# GRCX configuration
 sentinels:

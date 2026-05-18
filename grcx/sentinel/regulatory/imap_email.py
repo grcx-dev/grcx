@@ -8,11 +8,58 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Optional
 
+import httpx
 from rich.console import Console
 
-from grcx.sentinel.regulatory.rss import RegulatoryItem
+from grcx.sentinel.regulatory.rss import RegulatoryItem, HEADERS
 
 console = Console()
+
+
+def _title_from_slug(url: str) -> Optional[str]:
+    """Last meaningful path segment of a URL converted from kebab-case to title case."""
+    from urllib.parse import urlparse
+    path = urlparse(url).path.rstrip("/")
+    segments = [s for s in path.split("/") if s and len(s) > 4]
+    if not segments:
+        return None
+    slug = re.sub(r'\.[a-z]+$', '', segments[-1])
+    return slug.replace("-", " ").replace("_", " ").title() or None
+
+
+def fetch_page_title(url: str) -> Optional[str]:
+    """Fetch a URL and extract its human-readable title.
+
+    Tries, in order:
+      1. Drupal field--name-title span (common on EU regulatory sites)
+      2. Plain <h1> text
+      3. <title> tag with trailing site-name suffix stripped
+      4. Slug extracted from URL path (fallback when page is unreachable)
+    """
+    try:
+        r = httpx.get(url, timeout=httpx.Timeout(10.0), follow_redirects=True, headers=HEADERS)
+        r.raise_for_status()
+        html = r.text
+    except Exception:
+        return _title_from_slug(url)
+
+    # Drupal: <span class="field field--name-title ...">Title text</span>
+    m = re.search(r'class="[^"]*field--name-title[^"]*"[^>]*>\s*([^<]+)', html)
+    if m:
+        return m.group(1).strip()
+
+    # Plain <h1>
+    m = re.search(r'<h1[^>]*>\s*([^<]{10,})', html)
+    if m:
+        return m.group(1).strip()
+
+    # <title> tag — strip " | Site Name" suffixes
+    m = re.search(r'<title[^>]*>([^<]+)</title>', html, re.IGNORECASE)
+    if m:
+        title = re.sub(r'\s*[|–—]\s*.+$', '', m.group(1)).strip()
+        return title or _title_from_slug(url)
+
+    return _title_from_slug(url)
 
 
 class _LinkExtractor(HTMLParser):
@@ -230,13 +277,13 @@ class EmailSentinel:
         _SKIP_TEXT = re.compile(
             r'^(view\s+(in|online|this|\w+\s+browser)|unsubscribe|manage\s+(preferences|subscription)|'
             r'click\s+here|read\s+(more|online)|sign\s+up.*|update|forward|share|'
-            r'follow\s+us|contact\s+us|privacy\s+policy|terms|subscribe|'
+            r'follow\s+us|contact\s+us|privacy\s+policy|terms|subscribe|confirm.*subscri|'
             r'financial\s+conduct\s+authority|monetary\s+authority|'
             r'securities\s+(and\s+exchange\s+)?(commission|authority))$',
             re.IGNORECASE
         )
         # Skip href patterns that are purely tracking/utility with no content value
-        _SKIP_HREF = ("unsubscribe", "preferences", "optout", "mailto:")
+        _SKIP_HREF = ("unsubscribe", "preferences", "optout", "mailto:", "/newsletter", "/form/newsletter")
 
         items = []
         seen_hrefs: set[str] = set()
@@ -256,6 +303,10 @@ class EmailSentinel:
             if href in seen_hrefs:
                 continue
             seen_hrefs.add(href)
+
+            # When anchor text is itself a URL, fetch the real page title
+            if text.startswith(("http://", "https://")):
+                text = fetch_page_title(href) or text
 
             items.append(
                 RegulatoryItem(

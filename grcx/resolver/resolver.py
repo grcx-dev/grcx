@@ -116,7 +116,7 @@ class Resolver:
         self._use_gemini = "gemini" in self.llm
         self._use_ollama = not self.llm.startswith("claude-") and not self._use_gemini
         if not self._use_ollama and not self._use_gemini:
-            self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"), max_retries=0)
         elif self._use_gemini:
             self.gemini = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
