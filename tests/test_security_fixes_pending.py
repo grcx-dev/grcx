@@ -68,7 +68,6 @@ def csrf_disabled_app_client(monkeypatch, tmp_path, tmp_audit_dir):
 # Section 1: FLASK_SECRET_KEY fail-closed (finding #1)
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #1 Default Flask SECRET_KEY enables session forgery — app should raise RuntimeError if FLASK_SECRET_KEY is not set")
 def test_dashboard_refuses_to_load_without_secret_key(monkeypatch):
     """
     After the fix: importing/reloading dashboard.app without FLASK_SECRET_KEY in
@@ -77,10 +76,9 @@ def test_dashboard_refuses_to_load_without_secret_key(monkeypatch):
     Today: the module falls back to a known-public default string and starts
     normally, which means any attacker who read the source can forge sessions.
     """
-    # Remove the env var so the module sees no secret key
+    # Pre-cache the module before removing the env var, then reload without it
+    import dashboard.app as app_module  # noqa: F401 — ensures module is in sys.modules
     monkeypatch.delenv("FLASK_SECRET_KEY", raising=False)
-
-    import dashboard.app as app_module
 
     with pytest.raises((RuntimeError, SystemExit)):
         importlib.reload(app_module)

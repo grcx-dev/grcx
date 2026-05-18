@@ -14,11 +14,17 @@
 #   patch_gemini        -> factory(canned_json_str) for google.genai.Client
 #   patch_ollama_httpx  -> factory(canned_json_str) for the Ollama httpx.post
 import json
+import os
 from pathlib import Path
 
 import pytest
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
+
+# Ensure dashboard.app can be imported in tests — set a test secret key before
+# any test module imports the Flask app. The specific test that verifies the
+# fail-closed behaviour temporarily removes this via monkeypatch.
+os.environ.setdefault("FLASK_SECRET_KEY", "test-secret-key-not-for-production")
 
 
 # ─── filesystem ────────────────────────────────────────────────────────
