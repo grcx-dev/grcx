@@ -136,9 +136,16 @@ def sign_up():
             error = "Company name is required."
         else:
             db = get_db()
-            existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+            existing = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
             if existing:
-                error = "An account with this email already exists."
+                # Don't reveal that the account exists — silently sign in if password
+                # matches, otherwise show the same generic message either way.
+                if check_password_hash(existing["password_hash"], password):
+                    user = User(existing["id"], existing["email"], existing["name"], existing["company"])
+                    login_user(user)
+                    db.close()
+                    return redirect(url_for("dashboard"))
+                error = "Could not create account. Check your details and try again."
             else:
                 db.execute(
                     "INSERT INTO users (email, name, company, password_hash) VALUES (?, ?, ?, ?)",

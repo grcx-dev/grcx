@@ -70,16 +70,25 @@ def test_sign_up_missing_company_rejected(app_client):
     assert "company" in html
 
 
-def test_sign_up_duplicate_email_rejected(app_client):
-    # Create user first
-    _sign_up(app_client, email="dup@corp.com")
-    # Sign out
+def test_sign_up_duplicate_email_same_password_signs_in(app_client):
+    # Duplicate sign-up with the same password silently logs the user in
+    # rather than revealing that the email already exists.
+    _sign_up(app_client, email="dup@corp.com", password="password123")
     app_client.get("/sign-out")
-    # Try to create again with same email
-    resp = _sign_up(app_client, email="dup@corp.com")
+    resp = _sign_up(app_client, email="dup@corp.com", password="password123")
+    assert resp.status_code == 302
+
+
+def test_sign_up_duplicate_email_wrong_password_gives_generic_error(app_client):
+    # Duplicate sign-up with a different password returns a generic error message
+    # that does not reveal whether the email is registered.
+    _sign_up(app_client, email="dup2@corp.com", password="password123")
+    app_client.get("/sign-out")
+    resp = _sign_up(app_client, email="dup2@corp.com", password="wrongpassword")
     assert resp.status_code == 200
     html = resp.data.decode().lower()
-    assert "already exists" in html or "email" in html
+    assert "already exists" not in html
+    assert "could not create" in html or "check your details" in html
 
 
 def test_sign_in_with_valid_credentials(app_client):
