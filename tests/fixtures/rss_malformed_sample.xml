@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Malformed regulator feed</title>
+    <link>https://example.org/</link>
+    <item>
+      <!-- Missing title intentionally -->
+      <link>https://example.org/no-title</link>
+      <pubDate>invalid date format</pubDate>
+    </item>
+    <item>
+      <title>Item with only title</title>
+      <!-- no link, no pubDate, no description -->
+    </item>
+    <item>
+      <title>Item with JS href in description</title>
+      <link>javascript:alert(1)</link>
+      <description>Description text.</description>
+    </item>
+  </channel>
+</rss>

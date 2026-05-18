@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Regulator with unicode</title>
+    <link>https://example.org/</link>
+    <description>Mixed content for encoding edge tests</description>
+    <item>
+      <title>Règlement européen — €1,000,000 fine for ABN AMRO &amp; Banco Santander</title>
+      <link>https://example.org/regs/2026/règlement-européen</link>
+      <pubDate>Mon, 12 Jan 2026 09:30:00 +0100</pubDate>
+      <description>Consultation paper with em dash — and en dash – plus smart quotes "like these" and emoji 🏦 inside. Arabic: العربية. Chinese: 中文. RTL test.</description>
+    </item>
+    <item>
+      <title>Title with &lt;script&gt;alert(1)&lt;/script&gt; embedded</title>
+      <link>https://example.org/regs/2026/xss-attempt</link>
+      <pubDate>Tue, 13 Jan 2026 09:30:00 +0100</pubDate>
+      <description>Description with &lt;b&gt;HTML&lt;/b&gt; entities encoded.</description>
+    </item>
+  </channel>
+</rss>

@@ -25,3 +25,13 @@ grcx-audit/
 .vscode/
 .idea/
 .claude/
+
+# Test coverage artifacts
+.coverage
+.coverage.*
+coverage.json
+htmlcov/
+
+# Mutation testing artifacts
+mutants/
+.mutmut-cache

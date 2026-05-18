@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>ESMA News</title>
+  <link href="https://www.esma.europa.eu/"/>
+  <updated>2026-02-20T12:00:00Z</updated>
+  <id>https://www.esma.europa.eu/rss.xml</id>
+  <entry>
+    <title>ESMA publishes final report on MiCA technical standards</title>
+    <link href="https://www.esma.europa.eu/press-news/esma-news/mica-final-report-2026"/>
+    <published>2026-02-18T09:00:00Z</published>
+    <summary>The European Securities and Markets Authority has finalised the technical standards under the Markets in Crypto-Assets Regulation, covering authorisation, conduct of business, and market abuse provisions.</summary>
+  </entry>
+  <entry>
+    <title>Consultation on MiFID II transparency review</title>
+    <link href="https://www.esma.europa.eu/press-news/consultations/mifid-ii-transparency-2026"/>
+    <published>2026-02-10T11:30:00Z</published>
+    <summary>ESMA launches consultation on proposed amendments to the MiFID II transparency regime for non-equity instruments. Responses due 30 April 2026.</summary>
+  </entry>
+</feed>
