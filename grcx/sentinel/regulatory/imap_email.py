@@ -1,12 +1,14 @@
 # Copyright (c) 2026 Neil Lowden | GRCX | MIT License
 import email
 import imaplib
+import ipaddress
 import os
 import re
 from email.header import decode_header
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 import httpx
 from rich.console import Console
@@ -16,9 +18,37 @@ from grcx.sentinel.regulatory.rss import RegulatoryItem, HEADERS
 console = Console()
 
 
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),   # link-local / cloud metadata
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+]
+
+
+def _is_ssrf_blocked(url: str) -> bool:
+    """Return True if the URL targets a private/loopback/link-local address or non-HTTP scheme."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return True
+    if parsed.scheme not in ("http", "https"):
+        return True
+    host = parsed.hostname or ""
+    if host in ("localhost",):
+        return True
+    try:
+        addr = ipaddress.ip_address(host)
+        return any(addr in net for net in _PRIVATE_NETWORKS)
+    except ValueError:
+        return False
+
+
 def _title_from_slug(url: str) -> Optional[str]:
     """Last meaningful path segment of a URL converted from kebab-case to title case."""
-    from urllib.parse import urlparse
     path = urlparse(url).path.rstrip("/")
     segments = [s for s in path.split("/") if s and len(s) > 4]
     if not segments:
@@ -36,6 +66,8 @@ def fetch_page_title(url: str) -> Optional[str]:
       3. <title> tag with trailing site-name suffix stripped
       4. Slug extracted from URL path (fallback when page is unreachable)
     """
+    if _is_ssrf_blocked(url):
+        return None
     try:
         r = httpx.get(url, timeout=httpx.Timeout(10.0), follow_redirects=True, headers=HEADERS)
         r.raise_for_status()

@@ -148,17 +148,8 @@ def _make_httpx_mock(monkeypatch, html="<title>Test Page</title>"):
     return _fake_get
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #3 SSRF via fetch_page_title — AWS metadata URL 169.254.169.254 should be blocked")
 def test_fetch_page_title_blocks_aws_metadata(monkeypatch):
-    """
-    After the fix: fetch_page_title must return None (or raise a security
-    exception) for the AWS/GCP/Azure instance-metadata IP without making a
-    real HTTP request.
-
-    httpx is mocked so this test doesn't trigger a real outbound request even
-    today (before the fix). We assert that the SSRF check fires *before* httpx
-    is called — i.e., the function must refuse the URL at the validation layer.
-    """
+    """fetch_page_title must return None for cloud metadata IPs without calling httpx."""
     blocked_urls = []
 
     class _FakeResponse:
@@ -185,12 +176,8 @@ def test_fetch_page_title_blocks_aws_metadata(monkeypatch):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #3 SSRF via fetch_page_title — localhost URL should be blocked")
 def test_fetch_page_title_blocks_localhost(monkeypatch):
-    """
-    After the fix: fetch_page_title must return None for localhost URLs and
-    must not call httpx.get.
-    """
+    """fetch_page_title must return None for localhost URLs without calling httpx."""
     blocked_urls = []
 
     class _FakeResponse:
@@ -216,12 +203,8 @@ def test_fetch_page_title_blocks_localhost(monkeypatch):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #3 SSRF via fetch_page_title — private 192.168.x.x URL should be blocked")
 def test_fetch_page_title_blocks_private_192_168(monkeypatch):
-    """
-    After the fix: fetch_page_title must return None for private RFC-1918
-    addresses (192.168.0.0/16) without calling httpx.get.
-    """
+    """fetch_page_title must return None for RFC-1918 private addresses."""
     blocked_urls = []
 
     class _FakeResponse:
@@ -247,12 +230,8 @@ def test_fetch_page_title_blocks_private_192_168(monkeypatch):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #3 SSRF via fetch_page_title — link-local 169.254.x.x URL should be blocked")
 def test_fetch_page_title_blocks_link_local(monkeypatch):
-    """
-    After the fix: fetch_page_title must return None for any 169.254.0.0/16
-    address (link-local range; includes all cloud metadata endpoints).
-    """
+    """fetch_page_title must return None for link-local 169.254.0.0/16 addresses."""
     blocked_urls = []
 
     class _FakeResponse:
@@ -278,12 +257,8 @@ def test_fetch_page_title_blocks_link_local(monkeypatch):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #3 SSRF via fetch_page_title — file:// scheme should be blocked before httpx call")
 def test_fetch_page_title_blocks_file_scheme(monkeypatch):
-    """
-    After the fix: fetch_page_title must return None for file:// URIs and must
-    not attempt to pass them to httpx (which would read local files).
-    """
+    """fetch_page_title must return None for file:// URIs without calling httpx."""
     blocked_urls = []
 
     class _FakeResponse:
