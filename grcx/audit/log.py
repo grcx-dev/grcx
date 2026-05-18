@@ -1,4 +1,5 @@
 # Copyright (c) 2026 Neil Lowden | GRCX | MIT License
+import fcntl
 import json
 import hashlib
 import uuid
@@ -68,15 +69,20 @@ class AuditLog:
             "jurisdiction": jurisdiction,
             "source": source,
             "detail": detail or {},
-            "prev_hash": self._last_hash,
         }
 
-        entry["entry_hash"] = self._hash_entry(entry)
+        lock_path = self.log_path.with_suffix(".lock")
+        with open(lock_path, "w") as _lock:
+            fcntl.flock(_lock, fcntl.LOCK_EX)
+            # Re-read the tail inside the lock so concurrent writers stay in sync.
+            self._last_hash = self._compute_last_hash()
+            entry["prev_hash"] = self._last_hash
+            entry["entry_hash"] = self._hash_entry(entry)
 
-        with open(self.log_path, "a") as f:
-            f.write(json.dumps(entry) + "\n")
+            with open(self.log_path, "a") as f:
+                f.write(json.dumps(entry) + "\n")
 
-        self._last_hash = entry["entry_hash"]
+            self._last_hash = entry["entry_hash"]
 
         severity_colour = {
             "info": "green",
@@ -133,6 +139,8 @@ class AuditLog:
 
     def tail(self, n: int = 10) -> list[dict]:
         """Return the last n entries."""
+        if n == 0:
+            return []
         if not self.log_path.exists():
             return []
         lines = self.log_path.read_text().strip().splitlines()

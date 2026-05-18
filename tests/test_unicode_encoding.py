@@ -120,12 +120,12 @@ def test_email_mime_encoded_subject_decoded(email_unicode_eml, tmp_path):
 
 
 def test_email_subject_decode_falls_back_on_unknown_charset():
-    """_decode_header_value raises LookupError for an unknown charset — errors='replace'
-    only suppresses decode errors, not missing codec lookups. Pins current behaviour.
-    """
+    """_decode_header_value returns a non-empty string for unknown charsets by
+    catching LookupError and falling back to UTF-8 with errors='replace'."""
     raw = "=?bogus-charset?Q?Hello?="
-    with pytest.raises(LookupError):
-        _decode_header_value(raw)
+    result = _decode_header_value(raw)
+    assert isinstance(result, str)
+    assert len(result) > 0
 
 
 def test_email_with_emoji_in_body(tmp_path):

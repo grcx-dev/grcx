@@ -18,6 +18,41 @@ from grcx.audit.log import AuditLog
 console = Console()
 
 _FRAMEWORKS_DIR = Path(__file__).parent.parent / "controls" / "frameworks"
+
+
+def _extract_json(raw: str) -> dict:
+    """Extract the first JSON object from an LLM response, tolerating leading/trailing prose."""
+    # Strip ``` fences wherever they appear (not just at start of string).
+    import re
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
+    if fenced:
+        return json.loads(fenced.group(1))
+    # Find the first '{' and extract a balanced JSON object from there.
+    start = raw.find("{")
+    if start == -1:
+        return json.loads(raw)
+    depth = 0
+    in_str = False
+    escape = False
+    for i, ch in enumerate(raw[start:], start):
+        if escape:
+            escape = False
+            continue
+        if ch == "\\" and in_str:
+            escape = True
+            continue
+        if ch == '"' and not escape:
+            in_str = not in_str
+            continue
+        if in_str:
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return json.loads(raw[start:i + 1])
+    return json.loads(raw)
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 RESOLVER_PROMPT = """You are GRCX, a compliance operations agent for a regulated financial services firm.
@@ -227,18 +262,25 @@ class Resolver:
                     messages=[{"role": "user", "content": prompt}],
                 )
                 raw = message.content[0].text.strip()
-            if raw.startswith("```"):
-                raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
-            raw = raw.strip()
+            data = _extract_json(raw)
 
-            data = json.loads(raw)
+            if "has_implications" not in data:
+                raise KeyError("LLM response missing required field: 'has_implications'")
+
+            severity = data.get("severity", "info")
+            if severity not in ("info", "warning", "critical"):
+                severity = "warning"
+
+            raw_controls = data.get("affected_controls") or []
+            if isinstance(raw_controls, str):
+                raw_controls = [raw_controls] if raw_controls else []
+            valid_ids = {c["id"] for c in framework.get("controls", [])}
+            controls = [c for c in raw_controls if c in valid_ids] if valid_ids else raw_controls
 
             result = ResolverResult(
-                has_implications=data.get("has_implications", False),
-                severity=data.get("severity", "info"),
-                affected_controls=data.get("affected_controls", []),
+                has_implications=data["has_implications"],
+                severity=severity,
+                affected_controls=controls,
                 summary=data.get("summary", ""),
                 recommended_action=data.get("recommended_action", ""),
                 rationale=data.get("rationale", ""),

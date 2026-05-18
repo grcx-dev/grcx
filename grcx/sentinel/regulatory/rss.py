@@ -45,7 +45,8 @@ class RssSentinel:
 
     def _load_seen(self) -> set:
         if self.state_path.exists():
-            return set(self.state_path.read_text().splitlines())
+            text = self.state_path.read_bytes().decode("utf-8", errors="replace")
+            return set(line for line in text.splitlines() if line.strip())
         return set()
 
     def _save_seen(self):

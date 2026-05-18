@@ -46,24 +46,10 @@ def _valid_json(**overrides):
 # ─── Section 1: has_implications must be required (finding #1) ─────────────────
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #1: Resolver silently drops findings on missing has_implications",
-)
 def test_missing_has_implications_raises_or_logs_error(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: a response missing the required 'has_implications' key must either raise
-    ValueError (caught by the existing except-all and turned into a resolver.error audit
-    entry) or directly write a resolver.error entry. Today: silently treats the omission
-    as has_implications=False and returns a ResolverResult with no audit entry at all —
-    indistinguishable from a genuine 'no compliance implications' outcome.
-
-    This test accepts either outcome as valid post-fix behaviour:
-    - raised exception surfaced as a resolver.error audit entry, OR
-    - resolver.error entry written directly.
-    Either way, no silent drop.
-    """
+    """Missing 'has_implications' must raise or produce a resolver.error entry."""
     response = json.dumps({
         "severity": "warning",
         "summary": "Something important.",
@@ -92,18 +78,10 @@ def test_missing_has_implications_raises_or_logs_error(
 # ─── Section 2: control-ID validation (finding #4) ────────────────────────────
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #4: No control-ID validation — hallucinated IDs flow into audit log",
-)
 def test_hallucinated_control_ids_filtered_out(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: affected_controls in the resolver.assessment audit entry should only
-    contain IDs that actually exist in the loaded framework. The iso27001 framework
-    includes '5.1' but not 'BOGUS-99' or 'TOTALLY-FAKE'. Those two should be stripped
-    before the entry is written.
-    """
+    """IDs not in the loaded framework must be stripped from affected_controls."""
     response = _valid_json(
         affected_controls=["BOGUS-99", "TOTALLY-FAKE", "5.1"],
     )
@@ -120,25 +98,10 @@ def test_hallucinated_control_ids_filtered_out(
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #4: No control-ID validation — hallucinated IDs flow into audit log",
-)
 def test_all_hallucinated_controls_logged_as_warning(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: when every control ID returned by the LLM is hallucinated (none exist
-    in the framework), the resolver must handle it explicitly rather than silently writing
-    a finding with bogus IDs.
-
-    This test accepts any of the following as valid post-fix behaviour:
-    (a) The entry is not written at all (all-bogus treated as no-implications), OR
-    (b) A resolver.warning or resolver.error entry is written noting the invalid IDs, OR
-    (c) The entry is written with an empty affected_controls list.
-
-    What is NOT acceptable (current behaviour): writing the bogus IDs into the
-    resolver.assessment entry as if they were legitimate.
-    """
+    """When all returned control IDs are bogus, bogus IDs must not reach the audit log."""
     response = _valid_json(affected_controls=["BOGUS-1", "BOGUS-2"])
     patch_anthropic(response)
     r = _resolver(audit_log, tmp_audit_dir)
@@ -176,18 +139,10 @@ def test_all_hallucinated_controls_logged_as_warning(
 # ─── Section 3: affected_controls type coercion (finding #5) ──────────────────
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #5: affected_controls accepted as string instead of list",
-)
 def test_affected_controls_string_coerced_to_list(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: when the LLM returns affected_controls as a plain string (e.g. '5.1')
-    instead of a list, the resolver must coerce it to a single-element list ['5.1'].
-    Today it stores the string verbatim, causing ', '.join() to iterate over characters
-    and the dashboard to render one badge per character.
-    """
+    """A string affected_controls value must be coerced to a single-element list."""
     response = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -213,18 +168,10 @@ def test_affected_controls_string_coerced_to_list(
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #5: affected_controls accepted as string instead of list",
-)
 def test_affected_controls_none_becomes_empty_list(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: when the LLM returns affected_controls as null/None, the resolver must
-    coerce it to an empty list []. Today the None is passed through to ResolverResult and
-    downstream join() / iteration would crash (silently avoided only because no code
-    immediately iterates it in the error path).
-    """
+    """A null affected_controls value must be coerced to an empty list."""
     response = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -253,18 +200,10 @@ def test_affected_controls_none_becomes_empty_list(
 # ─── Section 4: tolerant JSON extraction (finding #3) ─────────────────────────
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #3: Brittle JSON parsing — leading prose drops the finding",
-)
 def test_extracts_json_with_leading_prose(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: prose before the JSON object must not prevent parsing. Today the
-    fence-stripping only triggers when the response starts with '```', so 'Here is my
-    analysis:\\n\\n{...}' hits json.loads directly and fails. Post-fix, the resolver
-    should locate the first '{' and extract from there.
-    """
+    """Prose before the JSON object must not prevent parsing."""
     payload = {
         "has_implications": True,
         "severity": "warning",
@@ -285,17 +224,10 @@ def test_extracts_json_with_leading_prose(
     assert len(assessment_entries) == 1, "Expected resolver.assessment entry to be written."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #3: Brittle JSON parsing — trailing prose drops the finding",
-)
 def test_extracts_json_with_trailing_prose(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: prose after the closing brace must not prevent parsing. Today
-    json.loads raises JSONDecodeError on any extra characters after the JSON object.
-    Post-fix, the resolver should extract only the JSON object and ignore trailing text.
-    """
+    """Prose after the closing brace must not prevent parsing."""
     payload = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -316,19 +248,10 @@ def test_extracts_json_with_trailing_prose(
     assert len(assessment_entries) == 1, "Expected resolver.assessment entry to be written."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #3: Brittle JSON parsing — prose + fenced block drops the finding",
-)
 def test_extracts_json_from_mixed_prose(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: a response structured as prose + fenced JSON block + trailing prose must
-    parse successfully. The existing fence-stripping only handles responses that START with
-    '```'; if there is any leading text before the fence, the logic is skipped and
-    json.loads receives the entire string including the fences and prose, causing a
-    JSONDecodeError.
-    """
+    """A response with prose before/after a fenced JSON block must parse successfully."""
     payload = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -349,17 +272,10 @@ def test_extracts_json_from_mixed_prose(
     assert len(assessment_entries) == 1, "Expected resolver.assessment entry to be written."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: TEST_REPORT finding #3: Brittle JSON parsing — extra object after main object",
-)
 def test_extracts_json_handles_extra_object_after(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: when the LLM appends a second JSON object after the main one (e.g. a
-    debug or metadata object), the resolver should extract only the FIRST valid object and
-    ignore the rest. Today the second object causes json.loads to raise JSONDecodeError.
-    """
+    """A second JSON object appended after the main one must be ignored."""
     payload = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -383,23 +299,10 @@ def test_extracts_json_handles_extra_object_after(
 # ─── Section 5: schema-validation as a layer ──────────────────────────────────
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Pending fix: schema-validation layer — severity outside info/warning/critical enum should be normalised or flagged",
-)
 def test_response_severity_outside_enum_normalised(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """After fix: a severity value that is not in the allowed enum (info/warning/critical)
-    must be either coerced to a known value or cause a resolver.error audit entry. Today
-    the invalid value 'very high' is passed through verbatim, silently producing dashboard
-    entries with an unrecognised severity that colour-maps to 'white' and breaks any
-    downstream severity-based logic.
-
-    This test accepts either outcome as valid post-fix behaviour:
-    - severity is coerced to one of 'info', 'warning', or 'critical', OR
-    - a resolver.error entry is written.
-    """
+    """Severity outside info/warning/critical must be coerced or produce a resolver.error."""
     response = _valid_json(severity="very high")
     patch_anthropic(response)
     r = _resolver(audit_log, tmp_audit_dir)

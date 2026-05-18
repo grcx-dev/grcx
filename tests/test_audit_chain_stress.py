@@ -149,18 +149,13 @@ def test_chain_severity_unknown_value_still_chains(tmp_path):
 
 
 def test_tail_returns_correct_count_at_boundary(tmp_path):
-    """tail() boundary cases: n==1 returns 1, n==5 returns 5, n>total returns all.
-
-    Note: tail(0) returns ALL entries rather than [] because Python's list[-0:]
-    is equivalent to list[0:], returning the whole list. Pins current behaviour.
-    """
+    """tail() boundary cases: n==0 returns [], n==1 returns 1, n==5 returns 5, n>total returns all."""
     log = _fresh_log(tmp_path)
 
     for i in range(5):
         log.write("regulatory.new_publication", f"Entry {i}", jurisdiction="TEST")
 
-    # tail(0) is a Python slice edge case: -0 == 0, so lines[-0:] == lines[0:]
-    assert len(log.tail(0)) == 5  # surprising: returns ALL entries, not []
+    assert len(log.tail(0)) == 0
 
     assert len(log.tail(1)) == 1
     assert len(log.tail(5)) == 5

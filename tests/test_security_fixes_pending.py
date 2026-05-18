@@ -379,15 +379,8 @@ def test_signup_rate_limited_after_3_attempts(csrf_disabled_app_client):
 # Section 5: Secure cookie flags
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: session cookie must have the Secure flag set to prevent transmission over plain HTTP")
 def test_session_cookie_has_secure_flag(csrf_disabled_app_client):
-    """
-    After the fix: the session cookie set after a successful sign-in must
-    include the Secure attribute.
-
-    Today: Flask does not set Secure by default on test clients (and the app
-    doesn't configure SESSION_COOKIE_SECURE=True).
-    """
+    """Session cookie set on sign-in must include the Secure attribute."""
     client = csrf_disabled_app_client
 
     # Create user and sign in
@@ -415,15 +408,8 @@ def test_session_cookie_has_secure_flag(csrf_disabled_app_client):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: session cookie must have a SameSite attribute (Strict or Lax) to mitigate CSRF — Flask does not set this by default without SESSION_COOKIE_SAMESITE configured")
 def test_session_cookie_has_samesite_strict_or_lax(csrf_disabled_app_client):
-    """
-    After the fix: the session cookie must include SameSite=Strict or
-    SameSite=Lax to provide an additional layer of CSRF mitigation.
-
-    Confirmed on 2026-05-18: Flask does not set SameSite by default.
-    SESSION_COOKIE_SAMESITE must be set to 'Lax' or 'Strict' in the app config.
-    """
+    """Session cookie must include SameSite=Lax or SameSite=Strict."""
     client = csrf_disabled_app_client
 
     client.post("/sign-up", data={
@@ -479,28 +465,8 @@ def test_audit_log_sign_parameter_either_works_or_removed(tmp_audit_dir):
 # Section 7: Process-safety lock (finding #2 in TEST_REPORT, security-relevant)
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: two AuditLog instances on the same directory break the hash chain — writes must be serialised or the second writer must be blocked")
 def test_second_audit_log_writer_blocked_or_serialised(tmp_audit_dir):
-    """
-    After the fix, exactly ONE of these must be true when two AuditLog
-    instances write to the same log directory:
-
-    Option A — second writer blocked:
-        The second AuditLog instance raises a "log is locked" (or similar)
-        exception when write() is called, because the first instance holds
-        an exclusive file lock.
-
-    Option B — writes are serialised:
-        Both writers succeed but the resulting log chain is valid (i.e.,
-        AuditLog.verify() returns True with no errors), because an advisory
-        lock or other serialisation mechanism ensures entries are appended
-        in a consistent order.
-
-    Today: both instances are created and write freely. The hash chain breaks
-    because each instance initialises _last_hash from the on-disk state at
-    construction time and then races to append entries — the second writer's
-    prev_hash points to the wrong predecessor.
-    """
+    """Two AuditLog instances on the same directory must produce a valid chain."""
     from grcx.audit.log import AuditLog
 
     log1 = AuditLog(log_dir=str(tmp_audit_dir))

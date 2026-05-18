@@ -48,10 +48,9 @@ def _valid_response(**overrides):
 def test_response_missing_has_implications_defaults_to_false(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: missing `has_implications` key causes data.get() to default to False.
-    Because has_implications is False, no audit assessment entry is written — the
-    resolver silently treats the omission as 'no action needed'. This is a latent
-    risk: a botched LLM response looks like a clean non-finding."""
+    """Pin: missing `has_implications` key raises KeyError — the resolver treats this
+    as a hard error, returns [], and writes a resolver.error audit entry. This prevents
+    a malformed LLM response from silently masquerading as a clean non-finding."""
     response = json.dumps({
         "severity": "warning",
         "summary": "x",
@@ -63,42 +62,37 @@ def test_response_missing_has_implications_defaults_to_false(
     r = Resolver(config=_config(tmp_audit_dir), audit=audit_log)
     results = r.analyse(make_item())
 
-    assert len(results) == 1
-    assert results[0].has_implications is False
+    assert results == []
 
     entries = _read_log(tmp_audit_dir)
-    assessment_entries = [e for e in entries if e["event_type"] == "resolver.assessment"]
-    assert len(assessment_entries) == 0
+    error_entries = [e for e in entries if e["event_type"] == "resolver.error"]
+    assert len(error_entries) == 1
 
 
 def test_response_with_severity_outside_enum(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: unknown severity values are passed through as-is — there is no
-    validation against the info/warning/critical enum. Dashboard colour-mapping
-    falls back to 'white' for unknown values, but the audit entry IS written."""
+    """Pin: unknown severity values are coerced to 'warning' — the resolver validates
+    against the info/warning/critical enum and normalises any other value to 'warning'."""
     response = _valid_response(severity="high")
     patch_anthropic(response)
     r = Resolver(config=_config(tmp_audit_dir), audit=audit_log)
     results = r.analyse(make_item())
 
     assert len(results) == 1
-    assert results[0].severity == "high"
+    assert results[0].severity == "warning"
 
     entries = _read_log(tmp_audit_dir)
     assessment_entries = [e for e in entries if e["event_type"] == "resolver.assessment"]
     assert len(assessment_entries) == 1
-    assert assessment_entries[0]["severity"] == "high"
+    assert assessment_entries[0]["severity"] == "warning"
 
 
 def test_response_with_affected_controls_as_string(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: `affected_controls` is passed through as whatever the LLM returns —
-    if the LLM emits a plain string instead of a list, the resolver stores that
-    string directly in ResolverResult.affected_controls without coercion.
-    Callers iterating `result.affected_controls` as a list will receive individual
-    characters, not control IDs."""
+    """Pin: `affected_controls` as a plain string is coerced to a single-element list
+    — the resolver wraps lone strings in a list so callers always receive a list."""
     response = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -112,8 +106,7 @@ def test_response_with_affected_controls_as_string(
     results = r.analyse(make_item())
 
     assert len(results) == 1
-    # The resolver does NOT coerce to list — pin the raw pass-through behaviour.
-    assert results[0].affected_controls == "5.1"
+    assert results[0].affected_controls == ["5.1"]
 
 
 def test_response_with_extra_unknown_fields_ignored(
@@ -146,11 +139,8 @@ def test_response_with_extra_unknown_fields_ignored(
 def test_response_with_trailing_text_after_json_fails_gracefully(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: trailing prose after the closing brace causes json.loads to raise
-    JSONDecodeError — the resolver catches it, returns [], and writes a
-    resolver.error audit entry. This means a partially-valid response is
-    entirely lost. We are pinning the CURRENT behaviour; a future fix might
-    extract the JSON substring first."""
+    """Pin: trailing prose after the JSON closing brace is handled gracefully by the
+    brace-counting extractor — the JSON substring is extracted and parsed successfully."""
     payload = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -164,21 +154,15 @@ def test_response_with_trailing_text_after_json_fails_gracefully(
     r = Resolver(config=_config(tmp_audit_dir), audit=audit_log)
     results = r.analyse(make_item())
 
-    assert results == []
-
-    entries = _read_log(tmp_audit_dir)
-    error_entries = [e for e in entries if e["event_type"] == "resolver.error"]
-    assert len(error_entries) == 1
+    assert len(results) == 1
+    assert results[0].has_implications is True
 
 
 def test_response_with_text_before_json(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: leading prose before the opening brace causes json.loads to fail —
-    the fence-stripping logic only runs when raw.startswith('```'), so prefixed
-    prose is never trimmed. The resolver returns [] and writes a resolver.error
-    entry. If we ever add JSON-extraction logic (e.g. finding the first '{'),
-    this test will need to be updated to reflect the new contract."""
+    """Pin: leading prose before the JSON opening brace is handled gracefully by the
+    brace-counting extractor — it scans for the first '{' and parses from there."""
     payload = json.dumps({
         "has_implications": True,
         "severity": "warning",
@@ -192,11 +176,8 @@ def test_response_with_text_before_json(
     r = Resolver(config=_config(tmp_audit_dir), audit=audit_log)
     results = r.analyse(make_item())
 
-    assert results == []
-
-    entries = _read_log(tmp_audit_dir)
-    error_entries = [e for e in entries if e["event_type"] == "resolver.error"]
-    assert len(error_entries) == 1
+    assert len(results) == 1
+    assert results[0].has_implications is True
 
 
 def test_response_with_single_quotes_not_double(
@@ -306,21 +287,19 @@ def test_response_with_just_plain_fence(
 def test_response_with_hallucinated_control_ids(
     tmp_audit_dir, audit_log, make_item, patch_anthropic
 ):
-    """Pin: the resolver does NOT validate affected_controls against the loaded
-    framework's actual control IDs. Bogus/hallucinated IDs are passed through
-    verbatim to the audit log and the ResolverResult. If we ever add framework
-    validation, this test will fail — that is the desired signal."""
+    """Pin: hallucinated control IDs not present in the loaded framework are filtered
+    out — only IDs that exist in the framework's control list are kept."""
     response = _valid_response(affected_controls=["BOGUS-99", "FAKE-1.1"])
     patch_anthropic(response)
     r = Resolver(config=_config(tmp_audit_dir), audit=audit_log)
     results = r.analyse(make_item())
 
     assert len(results) == 1
-    assert "BOGUS-99" in results[0].affected_controls
-    assert "FAKE-1.1" in results[0].affected_controls
+    assert "BOGUS-99" not in results[0].affected_controls
+    assert "FAKE-1.1" not in results[0].affected_controls
 
     entries = _read_log(tmp_audit_dir)
     assessment_entries = [e for e in entries if e["event_type"] == "resolver.assessment"]
     assert len(assessment_entries) == 1
-    assert "BOGUS-99" in assessment_entries[0]["detail"]["affected_controls"]
-    assert "FAKE-1.1" in assessment_entries[0]["detail"]["affected_controls"]
+    assert "BOGUS-99" not in assessment_entries[0]["detail"]["affected_controls"]
+    assert "FAKE-1.1" not in assessment_entries[0]["detail"]["affected_controls"]

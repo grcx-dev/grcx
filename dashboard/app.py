@@ -20,6 +20,8 @@ _secret_key = os.environ.get("FLASK_SECRET_KEY")
 if not _secret_key:
     raise RuntimeError("FLASK_SECRET_KEY environment variable is not set")
 app.secret_key = _secret_key
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 csrf = CSRFProtect(app)
 limiter = Limiter(
     get_remote_address,
@@ -99,7 +101,7 @@ def notify_signup(name, email, company):
         )
         msg["Subject"] = f"New GRCX signup: {name} ({company})"
         msg["From"] = os.environ.get("GRCX_SMTP_USER", "notifications@grcx.dev")
-        msg["To"] = "neil.lowden@gmail.com"
+        msg["To"] = os.environ.get("GRCX_NOTIFY_TO", "neil.lowden@gmail.com")
 
         with smtplib.SMTP(os.environ.get("GRCX_SMTP_HOST", "mail.grcx.dev"), 587) as s:
             s.starttls()

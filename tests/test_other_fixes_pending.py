@@ -15,11 +15,6 @@ from grcx.cli import cli
 
 # ── Section 1: RSS state file UTF-8 recovery (TEST_REPORT #6) ────────────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RssSentinel._load_seen raises UnicodeDecodeError on corrupt state file; "
-           "fix should open with errors='replace' or 'ignore' and silently recover.",
-)
 def test_rss_load_seen_recovers_from_corrupt_state_file(tmp_audit_dir):
     """RssSentinel should construct successfully even when the state file contains
     invalid UTF-8 bytes; valid fingerprints should be retained in _seen."""
@@ -40,11 +35,6 @@ def test_rss_load_seen_recovers_from_corrupt_state_file(tmp_audit_dir):
 
 # ── Section 2: Email charset error handling (TEST_REPORT #7) ─────────────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="_decode_header_value raises LookupError for unrecognised charsets; "
-           "fix should catch LookupError and fall back to utf-8/errors=replace.",
-)
 def test_decode_header_handles_unknown_charset():
     """_decode_header_value should return a fallback string for headers encoded
     with an unknown charset rather than propagating LookupError."""
@@ -60,11 +50,6 @@ def test_decode_header_handles_unknown_charset():
 
 # ── Section 3: AuditLog tail(0) (TEST_REPORT #9) ─────────────────────────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="tail(0) uses lines[-0:] which is lines[:], returning all entries; "
-           "fix should special-case n==0 and return [].",
-)
 def test_audit_tail_zero_returns_empty_list(audit_log):
     """AuditLog.tail(0) should return an empty list, not the entire log."""
     for i in range(5):
@@ -81,11 +66,6 @@ def test_audit_tail_zero_returns_empty_list(audit_log):
 
 # ── Section 4: Unclosed anchor recovery (TEST_REPORT #10) ────────────────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="_LinkExtractor silently drops anchor text when </a> is missing; "
-           "fix should flush the current anchor in handle_endtag or error-tolerance override.",
-)
 def test_link_extractor_flushes_unclosed_anchor():
     """_LinkExtractor should capture the link text even when the </a> closing
     tag is absent (e.g. in malformed HTML email bodies)."""
@@ -102,11 +82,6 @@ def test_link_extractor_flushes_unclosed_anchor():
 
 # ── Section 5: backfill creates backup (SECURITY_REVIEW #10) ─────────────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="backfill-titles rewrites grcx.log.jsonl in-place with no backup; "
-           "fix should create a timestamped backup before overwriting.",
-)
 def test_backfill_titles_creates_backup_before_rewrite(monkeypatch, tmp_audit_dir):
     """backfill-titles should write a timestamped backup of grcx.log.jsonl
     before performing any in-place rewrite."""
@@ -140,11 +115,6 @@ def test_backfill_titles_creates_backup_before_rewrite(monkeypatch, tmp_audit_di
 
 # ── Section 6: PII – hardcoded email recipient (SECURITY_REVIEW #8) ──────────
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="notify_signup hardcodes 'neil.lowden@gmail.com' as the To address; "
-           "fix should read it from the GRCX_NOTIFY_TO environment variable.",
-)
 def test_notify_signup_recipient_from_env_var(monkeypatch):
     """notify_signup should read the notification recipient from the GRCX_NOTIFY_TO
     env var rather than a hardcoded literal."""
@@ -187,11 +157,6 @@ def test_notify_signup_recipient_from_env_var(monkeypatch):
 
 # ── Section 7: backfill refuses when lockfile present (SECURITY_REVIEW #10) ──
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="backfill-titles does not implement a lockfile check; "
-           "fix should detect .lock and exit nonzero with an informative message.",
-)
 def test_backfill_titles_refuses_if_lockfile_present(tmp_audit_dir):
     """backfill-titles should refuse to proceed and exit nonzero when a .lock
     file exists in the audit directory (indicating a concurrent grcx watch run)."""

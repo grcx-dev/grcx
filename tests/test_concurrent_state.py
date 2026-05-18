@@ -13,25 +13,19 @@ import pytest
 # AuditLog chain-breaking when two instances share the same file
 # ---------------------------------------------------------------------------
 
-def test_two_audit_logs_writing_to_same_file_chain_breaks_predictably(tmp_audit_dir):
-    """DOCUMENTS that AuditLog is NOT process-safe — concurrent writers WILL corrupt the chain. Production use must serialise via a single process."""
+def test_two_audit_logs_writing_to_same_file_chain_stays_valid(tmp_audit_dir):
+    """Two AuditLog instances on the same directory serialise via file lock — chain stays valid."""
     from grcx.audit.log import AuditLog
 
     log_a = AuditLog(log_dir=str(tmp_audit_dir))
     log_b = AuditLog(log_dir=str(tmp_audit_dir))
 
-    # A writes first; both B and A still have _last_hash == "genesis" at init time.
     log_a.write(event_type="test", summary="entry from A")
-    # B writes with its stale _last_hash ("genesis"), creating a broken link.
     log_b.write(event_type="test", summary="entry from B")
-    # A writes again — its chain is internally consistent from its perspective
-    # but the file now has a B entry interleaved.
     log_a.write(event_type="test", summary="second entry from A")
 
-    # Verifying from either instance must detect the broken chain.
     valid, errors = log_a.verify()
-    assert not valid, "expected chain to be broken with two concurrent AuditLog instances"
-    assert len(errors) >= 1, f"expected at least one error, got: {errors}"
+    assert valid, f"expected valid chain with file-locked concurrent writers, got errors: {errors}"
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +122,8 @@ def test_audit_log_resumes_after_in_memory_state_drift(tmp_audit_dir):
 # ---------------------------------------------------------------------------
 
 def test_rss_state_file_survives_corrupt_content_on_reload(tmp_path):
-    """DOCUMENTS that RssSentinel._load_seen raises UnicodeDecodeError on non-UTF-8 state files — crash risk on corrupt/truncated writes. Production code should add error='replace' or a try/except in _load_seen."""
+    """RssSentinel._load_seen recovers gracefully from non-UTF-8 state files by
+    decoding with errors='replace', returning a (possibly partial) seen set."""
     from grcx.sentinel.regulatory.rss import RssSentinel
 
     sentinel = RssSentinel(
@@ -144,15 +139,13 @@ def test_rss_state_file_survives_corrupt_content_on_reload(tmp_path):
     # Simulate a mid-write crash by replacing the file with invalid UTF-8 bytes.
     state_file.write_bytes(b"\x00\x01\xff\xfe\x80invalid\x99")
 
-    # DOCUMENTS the current (broken) behaviour: RssSentinel crashes with
-    # UnicodeDecodeError when the state file contains non-UTF-8 bytes.
-    # A robust implementation would catch this and fall back to an empty set.
-    with pytest.raises(UnicodeDecodeError):
-        RssSentinel(
-            url="https://example.com/feed.rss",
-            jurisdiction="TEST",
-            state_dir=str(tmp_path),
-        )
+    # After fix: constructs without raising, _seen is a set (may be empty or partial)
+    recovered = RssSentinel(
+        url="https://example.com/feed.rss",
+        jurisdiction="TEST",
+        state_dir=str(tmp_path),
+    )
+    assert isinstance(recovered._seen, set)
 
 
 # ---------------------------------------------------------------------------

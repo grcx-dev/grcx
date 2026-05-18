@@ -123,13 +123,25 @@ class _LinkExtractor(HTMLParser):
         if self._current_href is not None:
             self._current_text.append(data)
 
+    def close(self):
+        if self._current_href:
+            text = "".join(self._current_text).strip()
+            if text:
+                self.links.append((text, self._current_href))
+            self._current_href = None
+            self._current_text = []
+        super().close()
+
 
 def _decode_header_value(raw: str) -> str:
     parts = decode_header(raw)
     decoded = []
     for chunk, charset in parts:
         if isinstance(chunk, bytes):
-            decoded.append(chunk.decode(charset or "utf-8", errors="replace"))
+            try:
+                decoded.append(chunk.decode(charset or "utf-8", errors="replace"))
+            except LookupError:
+                decoded.append(chunk.decode("utf-8", errors="replace"))
         else:
             decoded.append(chunk)
     return "".join(decoded)

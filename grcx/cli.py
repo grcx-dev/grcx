@@ -112,10 +112,19 @@ def backfill_titles(log_dir, dry_run):
     """Fix existing log entries where the publication title is a bare URL."""
     import hashlib
     import json
+    import sys
+    from datetime import datetime
     from pathlib import Path
     from grcx.sentinel.regulatory.imap_email import fetch_page_title
 
     log_path = Path(log_dir) / "grcx.log.jsonl"
+
+    lockfile = Path(log_dir) / ".lock"
+    if lockfile.exists():
+        console.print(f"[red]Lock file present ({lockfile}): a concurrent grcx watch process may be running. "
+                      f"Stop it before running backfill-titles.[/red]")
+        sys.exit(1)
+
     if not log_path.exists():
         console.print(f"[red]Log file not found: {log_path}[/red]")
         return
@@ -196,6 +205,9 @@ def backfill_titles(log_dir, dry_run):
         entry["prev_hash"] = prev_hash
         entry["entry_hash"] = _hash_entry(entry)
         prev_hash = entry["entry_hash"]
+
+    backup = log_path.with_name(f"grcx.log.jsonl.backup-{datetime.now().strftime('%Y%m%dT%H%M%S')}")
+    backup.write_text(log_path.read_text())
 
     log_path.write_text("\n".join(json.dumps(e) for e in entries) + "\n")
 
