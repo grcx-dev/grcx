@@ -22,7 +22,7 @@ def app_client(monkeypatch, tmp_path, tmp_audit_dir):
     monkeypatch.setattr(app_module, "notify_signup", lambda *a, **kw: None)
 
     app_module.app.config["TESTING"] = True
-    app_module.app.config["WTF_CSRF_ENABLED"] = False
+    monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", False)
 
     client = app_module.app.test_client()
     return client

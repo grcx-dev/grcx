@@ -10,6 +10,7 @@ from pathlib import Path
 
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -17,6 +18,7 @@ _secret_key = os.environ.get("FLASK_SECRET_KEY")
 if not _secret_key:
     raise RuntimeError("FLASK_SECRET_KEY environment variable is not set")
 app.secret_key = _secret_key
+csrf = CSRFProtect(app)
 
 LOG_PATH = Path(__file__).parent.parent / "grcx-audit" / "grcx.log.jsonl"
 DB_PATH = Path(os.environ.get("GRCX_DB_PATH", Path(__file__).parent.parent / "grcx-audit" / "users.db"))

@@ -105,6 +105,7 @@
     <div class="error">{{ error }}</div>
     {% endif %}
     <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-group">
         <label for="name">Full name</label>
         <input type="text" id="name" name="name" required placeholder="Jane Smith">

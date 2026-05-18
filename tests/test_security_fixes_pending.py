@@ -35,8 +35,8 @@ def security_app_client(monkeypatch, tmp_path, tmp_audit_dir):
     monkeypatch.setattr(app_module, "notify_signup", lambda *a, **kw: None)
 
     app_module.app.config["TESTING"] = True
-    # NOTE: WTF_CSRF_ENABLED is deliberately NOT set to False here.
-    # CSRF tests need the protection to be active to assert the right behaviour.
+    # Explicitly enable CSRF — guard against earlier tests leaving it disabled.
+    monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", True)
 
     return app_module.app.test_client()
 
@@ -59,7 +59,7 @@ def csrf_disabled_app_client(monkeypatch, tmp_path, tmp_audit_dir):
     monkeypatch.setattr(app_module, "notify_signup", lambda *a, **kw: None)
 
     app_module.app.config["TESTING"] = True
-    app_module.app.config["WTF_CSRF_ENABLED"] = False
+    monkeypatch.setitem(app_module.app.config, "WTF_CSRF_ENABLED", False)
 
     return app_module.app.test_client()
 
@@ -83,19 +83,21 @@ def test_dashboard_refuses_to_load_without_secret_key(monkeypatch):
     with pytest.raises((RuntimeError, SystemExit)):
         importlib.reload(app_module)
 
+    # The failed reload partially re-executed the module, creating a new Flask
+    # app object before the RuntimeError fired — that object has no routes.
+    # Restore the module to a healthy state so subsequent tests see a working app.
+    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key-not-for-production")
+    importlib.reload(app_module)
+
 
 # ===========================================================================
 # Section 2: CSRF protection (finding #2)
 # ===========================================================================
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #2 No CSRF protection on auth endpoints — POST /sign-up without a CSRF token should return 400/403")
 def test_signup_post_without_csrf_token_rejected(security_app_client):
     """
-    After the fix: a POST to /sign-up that carries no csrf_token must be
-    rejected with HTTP 400 or 403 (Flask-WTF returns 400 by default).
-
-    Today: flask-wtf is not installed; WTF_CSRF_ENABLED has no effect;
-    the POST succeeds.
+    POST /sign-up without a CSRF token must be rejected with 400 or 403.
+    Flask-WTF CSRFProtect returns 400 by default.
     """
     resp = security_app_client.post("/sign-up", data={
         "email": "attacker@evil.com",
@@ -109,13 +111,9 @@ def test_signup_post_without_csrf_token_rejected(security_app_client):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Pending fix: #2 No CSRF protection on auth endpoints — POST /sign-in without a CSRF token should return 400/403")
 def test_signin_post_without_csrf_token_rejected(security_app_client):
     """
-    After the fix: a POST to /sign-in that carries no csrf_token must be
-    rejected with HTTP 400 or 403.
-
-    Today: no protection; the POST proceeds to the credential-check logic.
+    POST /sign-in without a CSRF token must be rejected with 400 or 403.
     """
     resp = security_app_client.post("/sign-in", data={
         "email": "user@corp.com",
