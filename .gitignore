@@ -25,6 +25,7 @@ grcx-audit/
 .vscode/
 .idea/
 .claude/
+*.code-workspace
 
 # Test coverage artifacts
 .coverage
