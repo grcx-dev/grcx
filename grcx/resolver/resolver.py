@@ -53,7 +53,7 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     return json.loads(raw)
-RESOLVER_VERSION = "1.0.0"
+RESOLVER_VERSION = "1.1.0"
 
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 if not _OLLAMA_HOST.startswith(("http://localhost", "http://127.0.0.1")):
@@ -68,9 +68,18 @@ RESOLVER_PROMPT = """You are GRCX, a compliance operations agent for a regulated
 A new regulatory publication has been detected. Assess it and respond in the JSON format below.
 
 Severity guide:
-- critical: requires urgent action (new mandatory rule, enforcement action, deadline < 3 months)
-- warning:  requires planned response (consultation closing, guidance update, upcoming change)
-- info:     awareness only (speech, data release, minor clarification with no direct obligation)
+- critical: requires urgent action (new mandatory rule, enforcement action directly
+            against the firm or its sector, regulatory deadline < 3 months)
+- warning:  requires planned response (consultation closing, guidance update, upcoming
+            change that will create new obligations)
+- info:     awareness only — set has_implications to TRUE and severity to "info" for:
+            speeches, data releases, minor clarifications with no direct obligation,
+            OR enforcement action against a named third party where the compliance team
+            should review whether the same control failure could apply to this firm.
+            For third-party enforcement, the recommended_action must cite the specific
+            {framework_name} controls relevant to self-assessment (e.g. supplier/vendor
+            management controls, outsourcing oversight controls) so the team knows
+            exactly where to look.
 
 Control framework: {framework_name}
 
