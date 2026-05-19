@@ -53,6 +53,8 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     return json.loads(raw)
+RESOLVER_VERSION = "1.0.0"
+
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 if not _OLLAMA_HOST.startswith(("http://localhost", "http://127.0.0.1")):
     if os.environ.get("GRCX_ALLOW_REMOTE_OLLAMA") != "yes-i-know":
@@ -310,6 +312,8 @@ class Resolver:
                         "rationale": result.rationale,
                         "publication_title": item.title,
                         "fingerprint": item.fingerprint,
+                        "resolver_version": RESOLVER_VERSION,
+                        "model_version": self.llm,
                     },
                 )
 
