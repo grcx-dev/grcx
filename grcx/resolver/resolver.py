@@ -53,7 +53,7 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     return json.loads(raw)
-RESOLVER_VERSION = "1.2.0"
+RESOLVER_VERSION = "1.3.0"
 
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 if not _OLLAMA_HOST.startswith(("http://localhost", "http://127.0.0.1")):
@@ -253,6 +253,7 @@ class Resolver:
                         f"claude CLI returned error: {envelope.get('result', '')[:200]}"
                     )
                 raw = (envelope.get("result") or "").strip()
+                usage = None
             elif self._use_ollama:
                 response = httpx.post(
                     f"{_OLLAMA_HOST}/api/chat",
@@ -265,7 +266,14 @@ class Resolver:
                     timeout=180.0,
                 )
                 response.raise_for_status()
-                raw = response.json()["message"]["content"].strip()
+                resp_json = response.json()
+                raw = resp_json["message"]["content"].strip()
+                usage = {
+                    "input_tokens": resp_json.get("prompt_eval_count", 0),
+                    "output_tokens": resp_json.get("eval_count", 0),
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0,
+                }
             elif self._use_gemini:
                 resp = self.gemini.models.generate_content(
                     model=self.llm,
@@ -275,6 +283,13 @@ class Resolver:
                     ),
                 )
                 raw = resp.text.strip()
+                um = getattr(resp, "usage_metadata", None)
+                usage = {
+                    "input_tokens": getattr(um, "prompt_token_count", 0) if um else 0,
+                    "output_tokens": getattr(um, "candidates_token_count", 0) if um else 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0,
+                }
             else:
                 message = self.client.messages.create(
                     model=self.llm,
@@ -282,6 +297,13 @@ class Resolver:
                     messages=[{"role": "user", "content": prompt}],
                 )
                 raw = message.content[0].text.strip()
+                u = message.usage
+                usage = {
+                    "input_tokens": u.input_tokens,
+                    "output_tokens": u.output_tokens,
+                    "cache_creation_input_tokens": getattr(u, "cache_creation_input_tokens", 0),
+                    "cache_read_input_tokens": getattr(u, "cache_read_input_tokens", 0),
+                }
             data = _extract_json(raw)
 
             if "has_implications" not in data:
@@ -323,6 +345,7 @@ class Resolver:
                         "fingerprint": item.fingerprint,
                         "resolver_version": RESOLVER_VERSION,
                         "model_version": self.llm,
+                        "usage": usage,
                     },
                 )
 
@@ -351,6 +374,7 @@ class Resolver:
                         "fingerprint": item.fingerprint,
                         "resolver_version": RESOLVER_VERSION,
                         "model_version": self.llm,
+                        "usage": usage,
                     },
                 )
                 console.print(

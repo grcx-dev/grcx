@@ -64,10 +64,14 @@ def watch(config, dry_run, poll):
 @click.option("--log-dir", default="grcx-audit", help="Audit log directory.")
 @click.option("--verify", "do_verify", is_flag=True, help="Verify log integrity.")
 @click.option("--tail", default=10, help="Number of recent entries to show.", show_default=True)
-def audit(log_dir, do_verify, tail):
+@click.option("--usage", "do_usage", is_flag=True, help="Show token usage summary.")
+@click.option("--since", default=None, metavar="YYYY-MM-DD", help="Filter usage from this date (inclusive).")
+@click.option("--until", default=None, metavar="YYYY-MM-DD", help="Filter usage up to this date (inclusive).")
+def audit(log_dir, do_verify, tail, do_usage, since, until):
     """Inspect the GRCX audit log."""
     from grcx.audit.log import AuditLog
     from rich.table import Table
+    from collections import defaultdict
 
     log = AuditLog(log_dir=log_dir)
 
@@ -79,6 +83,86 @@ def audit(log_dir, do_verify, tail):
             console.print("[bold red]✗ Integrity errors detected:[/bold red]")
             for e in errors:
                 console.print(f"  [red]• {e}[/red]")
+        return
+
+    if do_usage:
+        import json as _json
+        if not log.log_path.exists():
+            console.print("[yellow]No audit log found.[/yellow]")
+            return
+
+        resolver_event_types = {"resolver.assessment", "resolver.no_implication"}
+        buckets: dict[tuple, dict] = defaultdict(lambda: {
+            "events": 0, "input_tokens": 0, "output_tokens": 0,
+            "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0,
+        })
+        no_usage_count = 0
+
+        for line in log.log_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                entry = _json.loads(line)
+            except Exception:
+                continue
+            if entry.get("event_type") not in resolver_event_types:
+                continue
+            ts = entry.get("timestamp", "")[:10]
+            if since and ts < since:
+                continue
+            if until and ts > until:
+                continue
+            detail = entry.get("detail", {})
+            rv = detail.get("resolver_version", "unknown")
+            mv = detail.get("model_version", "unknown")
+            u = detail.get("usage")
+            key = (rv, mv)
+            buckets[key]["events"] += 1
+            if u:
+                buckets[key]["input_tokens"] += u.get("input_tokens", 0)
+                buckets[key]["output_tokens"] += u.get("output_tokens", 0)
+                buckets[key]["cache_creation_input_tokens"] += u.get("cache_creation_input_tokens", 0)
+                buckets[key]["cache_read_input_tokens"] += u.get("cache_read_input_tokens", 0)
+            else:
+                no_usage_count += 1
+
+        title = "Token Usage Summary"
+        if since or until:
+            title += f" ({since or '…'} → {until or 'now'})"
+        table = Table(title=title)
+        table.add_column("resolver_version", style="cyan", width=18)
+        table.add_column("model", width=30)
+        table.add_column("events", justify="right", width=8)
+        table.add_column("input_tokens", justify="right", width=14)
+        table.add_column("output_tokens", justify="right", width=14)
+        table.add_column("cache_read", justify="right", width=12)
+
+        total_events = total_in = total_out = total_cache = 0
+        for (rv, mv), b in sorted(buckets.items()):
+            has_data = b["input_tokens"] > 0 or b["output_tokens"] > 0
+            table.add_row(
+                rv, mv,
+                str(b["events"]),
+                f"{b['input_tokens']:,}" if has_data else "—",
+                f"{b['output_tokens']:,}" if has_data else "—",
+                f"{b['cache_read_input_tokens']:,}" if has_data else "—",
+            )
+            total_events += b["events"]
+            total_in += b["input_tokens"]
+            total_out += b["output_tokens"]
+            total_cache += b["cache_read_input_tokens"]
+
+        console.print(table)
+        console.print(
+            f"[dim]Total: {total_events} events · "
+            f"{total_in:,} input tokens · {total_out:,} output tokens · "
+            f"{total_cache:,} cache reads[/dim]"
+        )
+        if no_usage_count:
+            console.print(
+                f"[dim]{no_usage_count} events have no usage data "
+                f"(resolved before v1.3.0)[/dim]"
+            )
         return
 
     entries = log.tail(tail)
