@@ -36,3 +36,4 @@ htmlcov/
 # Mutation testing artifacts
 mutants/
 .mutmut-cache
+grcx.log.jsonl*
