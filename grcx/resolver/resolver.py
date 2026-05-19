@@ -294,17 +294,27 @@ class Resolver:
                 # Prompt caching: split at <publication> so the framework prefix is
                 # cached across publications within the same poll cycle.
                 #
-                # Two-checkpoint pre-flight (2026-05-19, iso27001, 93 controls):
+                # Pre-flight token counts (2026-05-19, iso27001, 93 controls):
                 #   outer prefix (before first {framework_name} in severity guide): 189 tokens
                 #   inner prefix (before <publication>): 1,374 tokens
-                # The outer prefix does not clear Anthropic's 1,024-token minimum —
-                # skip it. The inner prefix clears by 350 tokens — one checkpoint only.
+                # Measured prefix sizes across all six production frameworks:
+                #   iso27001 ~1,374 · fca_sysc ~1,940 · mas_trm ~1,615
+                #   nist_csf ~1,260 · bcbs239 ~1,145 · soc2 ~2,725
+                #
+                # CACHING IS DORMANT: claude-haiku-4-5 requires a minimum prefix of
+                # 4,096 tokens; all current prefixes fall below that threshold.
+                # Anthropic silently processes sub-threshold requests without caching —
+                # cache_creation_input_tokens and cache_read_input_tokens remain 0.
+                # The content array structure and cache_control markers are correct;
+                # caching will engage automatically once the prefix exceeds 4,096 tokens.
+                # See ticket: grow prefix above 4,096 tokens (target v1.5.0).
+                # (Per Anthropic docs as of May 2026: sonnet-4-6 minimum 2,048;
+                #  sonnet-4-5 and earlier minimum 1,024.)
                 #
                 # ephemeral TTL (5 min) is correct: all 6 framework calls for one
                 # publication fire within seconds of each other, and the same framework
                 # repeats across all publications in the same poll cycle, so cache hits
-                # compound throughout the run. If the framework controls list grows
-                # substantially (>50% token increase), re-run the pre-flight check.
+                # will compound throughout the run once the threshold is cleared.
                 pub_idx = prompt.index("<publication>")
                 message = self.client.messages.create(
                     model=self.llm,
