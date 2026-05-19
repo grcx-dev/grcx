@@ -53,7 +53,7 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     return json.loads(raw)
-RESOLVER_VERSION = "1.1.0"
+RESOLVER_VERSION = "1.2.0"
 
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 if not _OLLAMA_HOST.startswith(("http://localhost", "http://127.0.0.1")):
@@ -340,6 +340,19 @@ class Resolver:
                     )
                 console.print(f"  [dim]→ {result.recommended_action}[/dim]")
             else:
+                self.audit.write(
+                    event_type="resolver.no_implication",
+                    summary=result.summary,
+                    jurisdiction=item.jurisdiction,
+                    source=item.url,
+                    detail={
+                        "framework": framework_id,
+                        "rationale": result.rationale,
+                        "fingerprint": item.fingerprint,
+                        "resolver_version": RESOLVER_VERSION,
+                        "model_version": self.llm,
+                    },
+                )
                 console.print(
                     f"  [dim]✓ No compliance implications \\[{framework_id}][/dim]"
                 )
