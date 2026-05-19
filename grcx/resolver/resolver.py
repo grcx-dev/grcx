@@ -53,7 +53,7 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     return json.loads(raw)
-RESOLVER_VERSION = "1.3.0"
+RESOLVER_VERSION = "1.4.0"
 
 _OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 if not _OLLAMA_HOST.startswith(("http://localhost", "http://127.0.0.1")):
@@ -291,10 +291,38 @@ class Resolver:
                     "cache_read_input_tokens": 0,
                 }
             else:
+                # Prompt caching: split at <publication> so the framework prefix is
+                # cached across publications within the same poll cycle.
+                #
+                # Two-checkpoint pre-flight (2026-05-19, iso27001, 93 controls):
+                #   outer prefix (before first {framework_name} in severity guide): 189 tokens
+                #   inner prefix (before <publication>): 1,374 tokens
+                # The outer prefix does not clear Anthropic's 1,024-token minimum —
+                # skip it. The inner prefix clears by 350 tokens — one checkpoint only.
+                #
+                # ephemeral TTL (5 min) is correct: all 6 framework calls for one
+                # publication fire within seconds of each other, and the same framework
+                # repeats across all publications in the same poll cycle, so cache hits
+                # compound throughout the run. If the framework controls list grows
+                # substantially (>50% token increase), re-run the pre-flight check.
+                pub_idx = prompt.index("<publication>")
                 message = self.client.messages.create(
                     model=self.llm,
                     max_tokens=1024,
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt[:pub_idx],
+                                "cache_control": {"type": "ephemeral"},
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt[pub_idx:],
+                            },
+                        ],
+                    }],
                 )
                 raw = message.content[0].text.strip()
                 u = message.usage
