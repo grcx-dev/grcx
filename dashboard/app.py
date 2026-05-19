@@ -209,7 +209,10 @@ def load_data():
         return {}
 
     publications = {}
-    assessments = defaultdict(list)
+    # Keyed fp -> {framework -> latest_assessment}. Later log entries overwrite
+    # earlier ones for the same (fp, framework) pair, so the dashboard always
+    # renders the most recent resolver run rather than merging across all history.
+    assessments: dict[str, dict[str, dict]] = defaultdict(dict)
     last_updated = None
 
     with open(LOG_PATH) as f:
@@ -242,8 +245,9 @@ def load_data():
 
             elif event == "resolver.assessment":
                 fp = entry["detail"].get("fingerprint", "")
-                assessments[fp].append({
-                    "framework": entry["detail"].get("framework", "iso27001"),
+                fw = entry["detail"].get("framework", "iso27001")
+                assessments[fp][fw] = {
+                    "framework": fw,
                     "severity": entry.get("severity", "info"),
                     "summary": entry.get("summary", ""),
                     "affected_controls": entry["detail"].get("affected_controls", []),
@@ -253,26 +257,28 @@ def load_data():
                     "jurisdiction": entry.get("jurisdiction", ""),
                     "timestamp": entry.get("timestamp", ""),
                     "publication_title": entry["detail"].get("publication_title", ""),
-                })
+                    "resolver_version": entry["detail"].get("resolver_version"),
+                    "model_version": entry["detail"].get("model_version"),
+                }
 
     rows = []
     for fp, pub in publications.items():
-        pub_assessments = assessments.get(fp, [])
+        # One entry per framework — latest assessment for each (fp, framework) pair.
+        pub_assessments = list(assessments.get(fp, {}).values())
         sev_order = {"critical": 3, "warning": 2, "info": 1}
         severity = "info"
         if pub_assessments:
             severity = max(pub_assessments, key=lambda a: sev_order.get(a["severity"], 0))["severity"]
 
-        by_framework = defaultdict(list)
-        for a in pub_assessments:
-            by_framework[a["framework"]].append(a)
+        # Wrap each assessment in a list so the template's `for a in fw_assessments` loop works.
+        by_framework = {a["framework"]: [a] for a in pub_assessments}
 
         rows.append({
             **pub,
             "severity": severity,
             "flagged": bool(pub_assessments),
             "assessments": pub_assessments,
-            "by_framework": dict(by_framework),
+            "by_framework": by_framework,
             "all_controls": sorted({c for a in pub_assessments for c in a["affected_controls"]}),
             "recommended_action": pub_assessments[0]["recommended_action"] if pub_assessments else "",
         })
