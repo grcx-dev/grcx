@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<title>GRCX radar mark</title>
+<line x1="55.3" y1="256.0" x2="456.7" y2="256.0" stroke="#E8F6F0" stroke-width="6.1" opacity="0.35"/>
+<line x1="256.0" y1="55.3" x2="256.0" y2="456.7" stroke="#E8F6F0" stroke-width="6.1" opacity="0.35"/>
+<circle cx="256.0" cy="256.0" r="181.8" fill="none" stroke="#E8F6F0" stroke-width="11.8"/>
+<circle cx="256.0" cy="256.0" r="119.1" fill="none" stroke="#E8F6F0" stroke-width="11.8"/>
+<circle cx="256.0" cy="256.0" r="56.3" fill="none" stroke="#E8F6F0" stroke-width="11.8"/>
+<line x1="256.0" y1="256.0" x2="384.5" y2="127.5" stroke="#FFFFFF" stroke-width="13.3" stroke-linecap="round"/>
+<circle cx="384.5" cy="127.5" r="25.6" fill="#F0A02A"/>
+<circle cx="256.0" cy="256.0" r="16.9" fill="#E8F6F0"/>
+</svg>

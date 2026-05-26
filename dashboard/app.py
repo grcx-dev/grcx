@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, send_from_directory, url_for
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -303,6 +303,14 @@ def load_data():
         "jurisdiction_counts": dict(jurisdiction_counts),
         "last_updated": last_updated.strftime("%d %b %Y %H:%M UTC") if last_updated else "—",
     }
+
+
+# ── Static helpers ──────────────────────────────────────────
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
 
 
 # ── Dashboard ───────────────────────────────────────────────
