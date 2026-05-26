@@ -26,7 +26,7 @@ class RegulatoryItem:
 
     def __post_init__(self):
         self.fingerprint = hashlib.sha256(
-            f"{self.url}{self.title}".encode()
+            f"{self.url.lower()}{self.title.lower()}".encode()
         ).hexdigest()[:16]
 
 
