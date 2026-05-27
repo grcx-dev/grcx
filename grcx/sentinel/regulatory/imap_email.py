@@ -6,7 +6,6 @@ import os
 import re
 from email.header import decode_header
 from html.parser import HTMLParser
-from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -179,10 +178,11 @@ class EmailSentinel:
     """
     Watches an IMAP mailbox for regulatory publication alert emails.
 
-    Connects over SSL, selects INBOX, fetches unseen messages from the
-    configured sender, parses HTML bodies for publication links, and returns
-    RegulatoryItem objects using the same fingerprint/state-file pattern as
-    RssSentinel.
+    Connects over SSL, selects INBOX, fetches messages from the configured
+    sender, parses HTML bodies for publication links, and returns
+    RegulatoryItem objects. Deduplication is log-derived: the caller
+    (runner.py) passes in the set of already-ingested source URLs; fetch()
+    returns only items not in that set. No seen-file is written or read.
 
     Password is read from the GRCX_IMAP_PASSWORD environment variable —
     never store credentials in grcx.yaml.
@@ -195,16 +195,12 @@ class EmailSentinel:
         jurisdiction: str,
         sender_filter: str,
         port: int = 993,
-        state_dir: str = "grcx-audit",
     ):
         self.host = host
         self.port = port
         self.username = username
         self.jurisdiction = jurisdiction
         self.sender_filter = sender_filter.lower()
-        self.state_path = Path(state_dir) / f"seen_{jurisdiction.lower()}_email.txt"
-        self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        self._seen = self._load_seen()
 
     # Expose a .url property so runner.py's audit log line works unchanged
     @property
@@ -212,22 +208,11 @@ class EmailSentinel:
         return f"imap://{self.host}"
 
     # ------------------------------------------------------------------
-    # State helpers
-    # ------------------------------------------------------------------
-
-    def _load_seen(self) -> set[str]:
-        if self.state_path.exists():
-            return set(self.state_path.read_text().splitlines())
-        return set()
-
-    def _save_seen(self) -> None:
-        self.state_path.write_text("\n".join(self._seen))
-
-    # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def fetch(self) -> list[RegulatoryItem]:
+    def fetch(self, ingested_urls: set[str]) -> list[RegulatoryItem]:
+        """Fetch emails and return items whose source URL has not been ingested."""
         password = os.environ.get("GRCX_IMAP_PASSWORD")
         if not password:
             console.print(
@@ -248,12 +233,7 @@ class EmailSentinel:
         for msg in messages:
             items.extend(self._parse_message(msg))
 
-        new_items = [i for i in items if i.fingerprint not in self._seen]
-        for item in new_items:
-            self._seen.add(item.fingerprint)
-        self._save_seen()
-
-        return new_items
+        return [i for i in items if i.url not in ingested_urls]
 
     # ------------------------------------------------------------------
     # IMAP

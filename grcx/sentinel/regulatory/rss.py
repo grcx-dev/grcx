@@ -3,8 +3,6 @@ import hashlib
 import httpx
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import datetime
-from pathlib import Path
 from typing import Optional
 from rich.console import Console
 
@@ -13,6 +11,17 @@ console = Console()
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; GRCX/0.1; +https://github.com/grcxdev/grcx)"
 }
+
+
+def compute_fingerprint(url: str) -> str:
+    # URL-only, always lowercased. Title is excluded so that feed reformats
+    # (capitalisation changes, punctuation edits) don't produce a new fingerprint
+    # for the same publication. Lowercasing is permanent — do not remove it.
+    # WARNING: changing this function invalidates fingerprint-keyed audit log
+    # entries. Any change must be paired with a log-derived state rebuild in
+    # runner.py so that previously ingested URLs are not re-ingested.
+    return hashlib.sha256(url.lower().encode()).hexdigest()[:16]
+
 
 @dataclass
 class RegulatoryItem:
@@ -25,35 +34,23 @@ class RegulatoryItem:
     fingerprint: str = field(init=False)
 
     def __post_init__(self):
-        self.fingerprint = hashlib.sha256(
-            f"{self.url.lower()}{self.title.lower()}".encode()
-        ).hexdigest()[:16]
+        self.fingerprint = compute_fingerprint(self.url)
 
 
 class RssSentinel:
     """
     Watches an RSS/Atom feed for new regulatory publications.
-    Tracks seen items via a local state file to avoid re-alerting.
+    Deduplication is log-derived: the caller (runner.py) passes in the set of
+    already-ingested source URLs; fetch() returns only items not in that set.
+    No seen-file is written or read.
     """
 
-    def __init__(self, url: str, jurisdiction: str, state_dir: str = "grcx-audit"):
+    def __init__(self, url: str, jurisdiction: str):
         self.url = url
         self.jurisdiction = jurisdiction
-        self.state_path = Path(state_dir) / f"seen_{jurisdiction.lower()}.txt"
-        self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        self._seen = self._load_seen()
 
-    def _load_seen(self) -> set:
-        if self.state_path.exists():
-            text = self.state_path.read_bytes().decode("utf-8", errors="replace")
-            return set(line for line in text.splitlines() if line.strip())
-        return set()
-
-    def _save_seen(self):
-        self.state_path.write_text("\n".join(self._seen))
-
-    def fetch(self) -> list[RegulatoryItem]:
-        """Fetch the feed and return only items we haven't seen before."""
+    def fetch(self, ingested_urls: set[str]) -> list[RegulatoryItem]:
+        """Fetch the feed and return items whose source URL has not been ingested."""
         timeout = httpx.Timeout(connect=10.0, read=45.0, write=10.0, pool=10.0)
         for attempt in range(2):
             try:
@@ -69,13 +66,7 @@ class RssSentinel:
                 return []
 
         items = self._parse(response.text)
-        new_items = [i for i in items if i.fingerprint not in self._seen]
-
-        for item in new_items:
-            self._seen.add(item.fingerprint)
-        self._save_seen()
-
-        return new_items
+        return [i for i in items if i.url not in ingested_urls]
 
     def _parse(self, xml_text: str) -> list[RegulatoryItem]:
         items = []

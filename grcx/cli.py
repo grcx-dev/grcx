@@ -194,7 +194,6 @@ def audit(log_dir, do_verify, tail, do_usage, since, until):
 @click.option("--dry-run", is_flag=True, help="Preview changes without writing.")
 def backfill_titles(log_dir, dry_run):
     """Fix existing log entries where the publication title is a bare URL."""
-    import hashlib
     import json
     import sys
     from datetime import datetime
@@ -251,9 +250,6 @@ def backfill_titles(log_dir, dry_run):
     entries = [e for e in entries if e.get("detail", {}).get("fingerprint") not in junk_fps]
 
     fixed = 0
-    # Track fingerprint swaps per seen-file so we can update them after
-    # { seen_file_path: [(old_fp, new_fp), ...] }
-    fp_updates: dict[str, list[tuple[str, str]]] = {}
 
     for entry in entries:
         if (entry.get("event_type") == "regulatory.new_publication"
@@ -262,18 +258,6 @@ def backfill_titles(log_dir, dry_run):
             title = fetch_page_title(url)
             if title:
                 console.print(f"  [green]✓[/green] {title[:70]}")
-
-                old_fp = hashlib.sha256(f"{url}{url}".encode()).hexdigest()[:16]
-                new_fp = hashlib.sha256(f"{url}{title}".encode()).hexdigest()[:16]
-
-                feed_url = entry.get("detail", {}).get("feed_url", "")
-                jur = (entry.get("jurisdiction") or "unknown").lower()
-                seen_file = Path(log_dir) / (
-                    f"seen_{jur}_email.txt" if feed_url.startswith("imap://")
-                    else f"seen_{jur}.txt"
-                )
-                fp_updates.setdefault(str(seen_file), []).append((old_fp, new_fp))
-
                 entry["summary"] = title
                 fixed += 1
             else:
@@ -295,16 +279,7 @@ def backfill_titles(log_dir, dry_run):
 
     log_path.write_text("\n".join(json.dumps(e) for e in entries) + "\n")
 
-    # Update seen fingerprint files so the next poll doesn't re-process fixed items
-    for seen_path_str, swaps in fp_updates.items():
-        seen_path = Path(seen_path_str)
-        seen = set(seen_path.read_text().splitlines()) if seen_path.exists() else set()
-        for old_fp, new_fp in swaps:
-            seen.discard(old_fp)
-            seen.add(new_fp)
-        seen_path.write_text("\n".join(seen))
-
-    console.print(f"\n[bold green]✓[/bold green] Fixed {fixed} entries, rebuilt hash chain, updated seen fingerprints.")
+    console.print(f"\n[bold green]✓[/bold green] Fixed {fixed} entries, rebuilt hash chain.")
 
 
 def _default_config():
