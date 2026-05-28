@@ -32,6 +32,9 @@
       --info-bg:   rgba(59,130,246,0.12);
       --radius:    8px;
       --sidebar-w: 220px;
+      /* Table column widths — used to align the expanded detail view */
+      --col-date: 128px;   /* td min-width 100px + padding 14px × 2 */
+      --col-jur:  120px;   /* wide enough for "JURISDICTION" header */
     }
     html { font-size: 15px; }
     body {
@@ -195,7 +198,7 @@
       overflow: auto;
       max-height: calc(100vh - 340px);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
     thead th {
       background: var(--navy-card);
       padding: 10px 14px; text-align: left;
@@ -219,8 +222,7 @@
     .td-title a { color: var(--white); text-decoration: none; }
     .td-title a:hover { color: var(--teal-light); text-decoration: underline; }
     .td-sev  { min-width: 80px; }
-    .td-ctrl { min-width: 120px; }
-    .td-action { min-width: 180px; max-width: 280px; color: var(--gray-300); }
+    .td-ctrl { min-width: 160px; }
 
     /* Severity pill */
     .sev {
@@ -256,6 +258,15 @@
     .ctrl-tag.nist { background: rgba(52,211,153,0.1);  color: #6EE7B7; }
     .ctrl-tag.bcbs { background: rgba(251,113,133,0.1); color: #FCA5A5; }
     .ctrl-tag.soc2 { background: rgba(251,146,60,0.1);  color: #FDBA74; }
+    .ctrl-fw-grid { display: flex; flex-direction: column; gap: 3px; }
+    .ctrl-fw-row  { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 4px; }
+    .ctrl-fw-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; flex-shrink: 0; }
+    .ctrl-fw-label.iso  { color: #93C5FD; }
+    .ctrl-fw-label.sysc { color: #FCD34D; }
+    .ctrl-fw-label.trm  { color: #C4B5FD; }
+    .ctrl-fw-label.nist { color: #6EE7B7; }
+    .ctrl-fw-label.bcbs { color: #FCA5A5; }
+    .ctrl-fw-label.soc2 { color: #FDBA74; }
 
     /* ── Expandable detail ────────────────────────────────────────── */
     .expand-btn {
@@ -274,7 +285,7 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .detail-inner {
-      padding: 16px 0;
+      padding: 16px 14px 16px calc(var(--col-date) + var(--col-jur));
       display: none;
     }
     .detail-inner.open { display: block; }
@@ -305,7 +316,11 @@
     .detail-fw-block { flex: 1; min-width: 200px; }
     .detail-fw-label {
       font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
-      font-weight: 700; margin-bottom: 6px;
+      font-weight: 700; white-space: nowrap;
+    }
+    .detail-fw-header-line {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 4px; margin-bottom: 8px;
     }
     .detail-fw-label.iso  { color: #93C5FD; }
     .detail-fw-label.sysc { color: #FCD34D; }
@@ -313,6 +328,40 @@
     .detail-fw-label.nist { color: #6EE7B7; }
     .detail-fw-label.bcbs { color: #FCA5A5; }
     .detail-fw-label.soc2 { color: #FDBA74; }
+    .detail-fw-stacked-row {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .detail-fw-stacked-row:last-child { border-bottom: none; }
+    .detail-fw-action {
+      font-size: 12px; color: var(--gray-300); line-height: 1.55;
+    }
+    .detail-fw-section-label {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--gray-500); font-weight: 700; margin-bottom: 4px; margin-top: 8px;
+    }
+    .detail-fw-rationale {
+      font-size: 11px; color: var(--gray-400);
+      line-height: 1.55; border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      /* transition — no display flip, no margin jump */
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      padding: 0 10px;
+      transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.15s ease;
+    }
+    .detail-fw-rationale.open {
+      max-height: 600px;
+      opacity: 1;
+      padding: 8px 10px;
+    }
+    .detail-rationale-btn {
+      background: none; border: none; color: var(--teal);
+      cursor: pointer; font-size: 11px; font-weight: 500;
+      padding: 0; margin-top: 8px; display: inline-block;
+    }
+    .detail-rationale-btn:hover { color: var(--teal-light); }
 
     /* ── Empty state ──────────────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 24px; color: var(--gray-500); }
@@ -327,7 +376,6 @@
     @media (max-width: 900px) {
       .sidebar { display: none; }
       .detail-grid { grid-template-columns: 1fr; }
-      .td-action { display: none; }
     }
     @media (max-width: 640px) {
       .main { padding: 12px; }
@@ -490,14 +538,20 @@
 
     <div class="table-wrap">
       <table id="pubTable">
+        <colgroup>
+          <col style="width: var(--col-date)">
+          <col style="width: var(--col-jur)">
+          <col>
+          <col style="width: 108px">
+          <col style="width: 260px">
+        </colgroup>
         <thead>
           <tr>
             <th>Date</th>
             <th>Jurisdiction</th>
             <th>Title</th>
             <th>Severity</th>
-            <th>Controls</th>
-            <th>Recommended action</th>
+            <th>Affected Controls</th>
           </tr>
         </thead>
         <tbody>
@@ -517,7 +571,7 @@
               {% endif %}
               {% if row.flagged %}
                 <br><button class="expand-btn" onclick="toggleDetail('{{ row.fingerprint }}', this)">
-                  <span class="arrow">▶</span> View assessment
+                  <span class="arrow">▶</span> <span class="btn-text">View assessment</span>
                 </button>
               {% endif %}
             </td>
@@ -529,62 +583,50 @@
               {% endif %}
             </td>
             <td class="td-ctrl">
-              <div class="ctrl-tags">
-                {% for a in row.assessments %}
-                  {% set fw = a.framework %}
-                  {% for c in a.affected_controls %}
-                    <span class="ctrl-tag {{ fw_class(fw) }}">{{ c }}</span>
+              <div class="ctrl-fw-grid">
+                {% for fw_id, fw_assessments in row.by_framework.items() %}
+                <div class="ctrl-fw-row">
+                  <span class="ctrl-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}:</span>
+                  {% for a in fw_assessments %}
+                    {% for c in a.affected_controls %}
+                      <span class="ctrl-tag {{ fw_class(fw_id) }}">{{ c }}</span>
+                    {% endfor %}
                   {% endfor %}
+                </div>
                 {% endfor %}
               </div>
-            </td>
-            <td class="td-action">
-              {% if row.recommended_action %}
-                {{ row.recommended_action[:120] }}{% if row.recommended_action|length > 120 %}…{% endif %}
-              {% else %}
-                <span style="color:var(--gray-600)">—</span>
-              {% endif %}
             </td>
           </tr>
 
           {% if row.flagged %}
           <tr class="detail-row" id="detail-{{ row.fingerprint }}" style="display:none">
-            <td colspan="6">
+            <td colspan="5">
               <div class="detail-inner" id="inner-{{ row.fingerprint }}">
 
-                <!-- Framework controls side by side -->
-                <div class="detail-fw-row">
-                  {% for fw_id, fw_assessments in row.by_framework.items() %}
-                  <div class="detail-fw-block">
-                    <div class="detail-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}</div>
-                    <div class="ctrl-tags" style="margin-bottom:8px">
-                      {% for a in fw_assessments %}
-                        {% for c in a.affected_controls %}
-                          <span class="ctrl-tag {{ fw_class(fw_id) }}">{{ c }}</span>
-                        {% endfor %}
-                      {% endfor %}
-                    </div>
-                    {% for a in fw_assessments %}
-                    <div style="font-size:12px;color:var(--gray-400);margin-bottom:4px">{{ a.summary }}</div>
+                <!-- Per-framework stacked rows -->
+                {% for fw_id, fw_assessments in row.by_framework.items() %}
+                {% for a in fw_assessments %}
+                <div class="detail-fw-stacked-row">
+                  <div class="detail-fw-header-line">
+                    <span class="detail-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}:</span>
+                    {% for c in a.affected_controls %}
+                      <span class="ctrl-tag {{ fw_class(fw_id) }}">{{ c }}</span>
                     {% endfor %}
                   </div>
-                  {% endfor %}
-                </div>
-
-                <!-- Detail cards -->
-                <div class="detail-grid">
-                  {% if row.assessments %}
-                  {% set a = row.assessments[0] %}
-                  <div class="detail-card">
-                    <div class="detail-card-label">Recommended action</div>
-                    <div class="detail-card-body">{{ a.recommended_action }}</div>
-                  </div>
-                  <div class="detail-card">
-                    <div class="detail-card-label">Rationale</div>
-                    <div class="detail-card-body">{{ a.rationale }}</div>
+                  {% if a.recommended_action %}
+                  <div class="detail-fw-section-label">Recommended action</div>
+                  <div class="detail-fw-action">{{ a.recommended_action }}</div>
+                  {% endif %}
+                  {% if a.rationale %}
+                  <button class="detail-rationale-btn" onclick="toggleRationale('rat-{{ row.fingerprint }}-{{ fw_id }}', this)">View Rationale</button>
+                  <div class="detail-fw-rationale" id="rat-{{ row.fingerprint }}-{{ fw_id }}">
+                    <div class="detail-fw-section-label" style="margin-top:0">Rationale</div>
+                    {{ a.rationale }}
                   </div>
                   {% endif %}
                 </div>
+                {% endfor %}
+                {% endfor %}
 
               </div>
             </td>
@@ -680,6 +722,13 @@
     inner.classList.toggle('open', !isOpen);
     detailRow.style.display = isOpen ? 'none' : '';
     btn.classList.toggle('open', !isOpen);
+    btn.querySelector('.btn-text').textContent = isOpen ? 'View assessment' : 'Close assessment';
+  }
+
+  function toggleRationale(id, btn) {
+    var el = document.getElementById(id);
+    var open = el.classList.toggle('open');
+    if (btn) btn.textContent = open ? 'Close Rationale' : 'View Rationale';
   }
 
   // Apply default filter on load (flagged only)
