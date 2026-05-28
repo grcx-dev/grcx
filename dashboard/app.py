@@ -219,6 +219,8 @@ def load_data():
     fp_to_url: dict[str, str] = {}
     # url → {framework → latest assessment}. Last-write-wins per (url, fw).
     assessments: dict[str, dict[str, dict]] = defaultdict(dict)
+    # fp → [raw entry, ...] in log order — for the audit-chain modal.
+    fp_raw: dict[str, list] = defaultdict(list)
     last_updated = None
 
     with open(LOG_PATH) as f:
@@ -234,6 +236,10 @@ def load_data():
             ts = _parse_ts(entry.get("timestamp", ""))
             if last_updated is None or ts > last_updated:
                 last_updated = ts
+
+            _fp = entry.get("detail", {}).get("fingerprint", "")
+            if _fp:
+                fp_raw[_fp].append(entry)
 
             event = entry.get("event_type")
 
@@ -303,6 +309,7 @@ def load_data():
             "by_framework": by_framework,
             "all_controls": sorted({c for a in pub_assessments for c in a["affected_controls"]}),
             "recommended_action": pub_assessments[0]["recommended_action"] if pub_assessments else "",
+            "audit_entries": fp_raw.get(pub["fingerprint"], []),
         })
 
     rows.sort(key=lambda r: r["timestamp"], reverse=True)

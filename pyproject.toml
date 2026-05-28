@@ -58,3 +58,6 @@ paths_to_mutate = ["grcx/audit/log.py"]
 # absolute --rootdir so the listed test files resolve correctly.
 runner = ".venv/bin/python -m pytest -x -q --override-ini='testpaths=' tests/test_audit_log.py tests/test_audit_log_corruption.py tests/test_audit_chain_stress.py tests/test_fingerprint.py"
 do_not_mutate = ["__init__.py"]
+
+[dependency-groups]
+dev = []

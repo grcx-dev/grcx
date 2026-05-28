@@ -494,6 +494,9 @@ requires-dist = [
 ]
 provides-extras = ["dev"]
 
+[package.metadata.requires-dev]
+dev = []
+
 [[package]]
 name = "h11"
 version = "0.16.0"

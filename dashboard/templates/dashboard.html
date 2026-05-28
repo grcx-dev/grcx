@@ -406,6 +406,107 @@
       .stat-grid { grid-template-columns: repeat(2, 1fr); }
       .td-ctrl { display: none; }
     }
+
+    /* ── Audit chain icon (superscript link next to title) ──────────── */
+    .audit-chain-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 3px; padding: 0;
+      background: none; border: none;
+      color: var(--teal); opacity: 0.55;
+      cursor: pointer; vertical-align: top; position: relative; top: -2px;
+      transition: opacity 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .audit-chain-icon:hover { opacity: 1; color: var(--teal-light); }
+    .audit-chain-icon svg { display: block; }
+
+    /* ── Audit chain modal ───────────────────────────────────────── */
+    #audit-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.72); z-index: 500;
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .audit-panel {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      width: 100%; max-width: 740px;
+      max-height: calc(100vh - 48px);
+      display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.65);
+    }
+    .audit-panel-hdr {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0; gap: 12px;
+    }
+    .audit-panel-title { font-size: 14px; font-weight: 600; color: var(--white); }
+    .audit-panel-sub {
+      font-size: 11px; color: var(--gray-500); margin-top: 4px;
+      line-height: 1.4; max-width: 580px;
+    }
+    .audit-panel-close {
+      background: none; border: none; color: var(--gray-400);
+      cursor: pointer; font-size: 20px; padding: 0; line-height: 1;
+      flex-shrink: 0;
+    }
+    .audit-panel-close:hover { color: var(--white); }
+    .audit-panel-body { overflow-y: auto; padding: 16px 20px; flex: 1; }
+    /* Per-entry card */
+    .amc {
+      background: var(--navy-mid);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+    }
+    .amc-head {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 6px;
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .amc-type {
+      font-family: ui-monospace, monospace; font-size: 11px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--teal-light);
+    }
+    .amc-ts { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gray-500); }
+    .amc-hashes {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 9px 14px;
+      background: rgba(0,0,0,0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .amc-hash { display: flex; align-items: center; gap: 7px; }
+    .amc-hfield {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--gray-500); font-weight: 600; white-space: nowrap;
+    }
+    .amc-hval {
+      font-family: ui-monospace, monospace; font-size: 12px; font-weight: 600;
+      padding: 2px 9px; border-radius: 4px; border: 1px solid;
+      letter-spacing: 0.3px; cursor: default; white-space: nowrap;
+    }
+    .amc-arrow { color: var(--gray-500); font-size: 12px; }
+    .amc-json-wrap { padding: 10px 14px; }
+    pre.amc-json {
+      font-family: ui-monospace, monospace; font-size: 11px;
+      color: var(--gray-400); white-space: pre; overflow-x: auto;
+      line-height: 1.6; margin: 0;
+      max-height: 220px; overflow-y: auto;
+    }
+    /* Connector between entry cards */
+    .amc-connector {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2px 0;
+    }
+    .amc-conn-stem { width: 1px; height: 10px; background: currentColor; opacity: 0.6; }
+    .amc-conn-label {
+      font-size: 9px; letter-spacing: 0.3px; padding: 1px 8px;
+      border: 1px solid currentColor; border-radius: 10px;
+      background: var(--navy-card); opacity: 0.9;
+      font-family: ui-monospace, monospace; white-space: nowrap;
+    }
   </style>
 </head>
 {% macro fw_class(fw_id) %}{% set f = fw_id.lower() %}{% if 'sysc' in f %}sysc{% elif 'nist' in f %}nist{% elif 'trm' in f or 'mas' in f %}trm{% elif 'bcbs' in f %}bcbs{% elif 'soc2' in f %}soc2{% else %}iso{% endif %}{% endmacro %}
@@ -596,6 +697,7 @@
               {% else %}
                 {{ row.title }}
               {% endif %}
+              {% if row.audit_entries %}<button class="audit-chain-icon" onclick="openAuditModal('{{ row.fingerprint }}')" title="View audit chain" aria-label="View audit chain"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7h3a5 5 0 0 1 0 10h-3"/><path d="M9 17H6A5 5 0 0 1 6 7h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>{% endif %}
               {% if row.flagged %}
                 <br><button class="expand-btn" onclick="toggleDetail('{{ row.fingerprint }}', this)">
                   <span class="arrow">▶</span> <span class="btn-text">View assessment</span>
@@ -808,6 +910,136 @@
   applyFilters();
   document.getElementById('btn-flagged').classList.add('active');
   document.getElementById('btn-flagged').textContent = '✓ Flagged only';
+</script>
+<!-- Audit entry JSON blobs (one per publication, consumed by openAuditModal) -->
+{% for row in rows %}{% if row.audit_entries %}<script type="application/json" id="audit-{{ row.fingerprint }}">{{ row.audit_entries | tojson }}</script>{% endif %}{% endfor %}
+
+<!-- Audit chain modal -->
+<div id="audit-modal" onclick="if(event.target===this)closeAuditModal()">
+  <div class="audit-panel">
+    <div class="audit-panel-hdr">
+      <div>
+        <div class="audit-panel-title">Audit chain</div>
+        <div class="audit-panel-sub" id="audit-panel-sub"></div>
+      </div>
+      <button class="audit-panel-close" onclick="closeAuditModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="audit-panel-body" id="audit-modal-body"></div>
+  </div>
+</div>
+
+<script>
+  /* ── Audit chain modal ───────────────────────────────────────── */
+  const CHAIN_COLORS = [
+    '#6EE7B7', // teal-green
+    '#93C5FD', // blue
+    '#FCD34D', // yellow
+    '#C4B5FD', // violet
+    '#FDBA74', // orange
+    '#FCA5A5', // pink
+    '#67E8F9', // cyan
+    '#A3E635', // lime
+  ];
+
+  function _escH(s) {
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function _truncH(h) {
+    return (h && h !== 'genesis' && h.length > 12)
+      ? h.slice(0,8) + '…' + h.slice(-4)
+      : (h || '—');
+  }
+
+  function openAuditModal(fp) {
+    var scriptEl = document.getElementById('audit-' + fp);
+    if (!scriptEl) return;
+    var entries = JSON.parse(scriptEl.textContent);
+    if (!entries.length) return;
+    var pubEntry = entries.find(function(e) { return e.event_type === 'regulatory.new_publication'; });
+    var pubTitle = pubEntry ? (pubEntry.summary || '') : '';
+
+    // Assign a stable color to each unique entry_hash, in order of first appearance.
+    // Because entry_hash of entry N === prev_hash of entry N+1, matching values
+    // automatically render in the same color — making the chain visually obvious.
+    var hClr = {};
+    var ci = 0;
+    entries.forEach(function(e) {
+      if (e.entry_hash && !hClr[e.entry_hash])
+        hClr[e.entry_hash] = CHAIN_COLORS[ci++ % CHAIN_COLORS.length];
+    });
+
+    function hPill(hash) {
+      if (!hash) return '<span style="color:var(--gray-500)">—</span>';
+      if (hash === 'genesis') {
+        return '<span class="amc-hval" style="color:#64748B;border-color:rgba(100,116,139,.3);background:rgba(100,116,139,.1)" title="genesis (first entry in chain)">genesis</span>';
+      }
+      var c = hClr[hash] || '#64748B';
+      return '<span class="amc-hval" style="color:' + c + ';border-color:' + c + '33;background:' + c + '18" title="' + _escH(hash) + '">' + _truncH(hash) + '</span>';
+    }
+
+    var html = '';
+    entries.forEach(function(e, i) {
+      var entryClr = hClr[e.entry_hash] || '#64748B';
+      var fw = (e.detail && e.detail.framework) ? ' · ' + e.detail.framework : '';
+      var ts = (e.timestamp || '').slice(0, 19).replace('T', ' ');
+
+      // Card
+      html += '<div class="amc">';
+
+      // Header row: event_type + timestamp
+      html += '<div class="amc-head">';
+      html += '<span class="amc-type">' + _escH(e.event_type || '') + _escH(fw) + '</span>';
+      html += '<span class="amc-ts">' + _escH(ts) + ' UTC</span>';
+      html += '</div>';
+
+      // Hash chain row: prev_hash → entry_hash (colored pills, same color = same value = chain link)
+      html += '<div class="amc-hashes">';
+      html += '<div class="amc-hash"><span class="amc-hfield">prev_hash</span>' + hPill(e.prev_hash) + '</div>';
+      html += '<span class="amc-arrow">→</span>';
+      html += '<div class="amc-hash"><span class="amc-hfield">entry_hash</span>' + hPill(e.entry_hash) + '</div>';
+      html += '</div>';
+
+      // Full JSON body — escape HTML, then re-highlight just the two hash key-value pairs
+      var safe = _escH(JSON.stringify(e, null, 2));
+      var lit = safe.replace(
+        /&quot;(prev_hash|entry_hash)&quot;: &quot;([^&]+)&quot;/g,
+        function(_, k, v) {
+          var c = (v === 'genesis') ? '#64748B' : (hClr[v] || '#64748B');
+          return '&quot;<span style="color:var(--teal-light);font-weight:600">' + k + '</span>&quot;: '
+               + '&quot;<span style="color:' + c + ';font-weight:700">' + v + '</span>&quot;';
+        }
+      );
+      html += '<div class="amc-json-wrap"><pre class="amc-json">' + lit + '</pre></div>';
+      html += '</div>'; // .amc
+
+      // Connector between cards: color matches the entry_hash above = prev_hash below
+      if (i < entries.length - 1) {
+        html += '<div class="amc-connector" style="color:' + entryClr + '">';
+        html += '<div class="amc-conn-stem"></div>';
+        html += '<div class="amc-conn-label">↓ entry_hash → prev_hash</div>';
+        html += '<div class="amc-conn-stem"></div>';
+        html += '</div>';
+      }
+    });
+
+    document.getElementById('audit-modal-body').innerHTML = html;
+    document.getElementById('audit-panel-sub').textContent = pubTitle || '';
+    document.getElementById('audit-modal').style.display = 'flex';
+  }
+
+  function closeAuditModal() {
+    document.getElementById('audit-modal').style.display = 'none';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('audit-modal').style.display === 'flex')
+      closeAuditModal();
+  });
 </script>
 <script
   async
