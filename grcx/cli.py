@@ -194,6 +194,7 @@ def audit(log_dir, do_verify, tail, do_usage, since, until):
 @click.option("--dry-run", is_flag=True, help="Preview changes without writing.")
 def backfill_titles(log_dir, dry_run):
     """Fix existing log entries where the publication title is a bare URL."""
+    import hashlib
     import json
     import sys
     from datetime import datetime

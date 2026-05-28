@@ -33,8 +33,11 @@
       --radius:    8px;
       --sidebar-w: 220px;
       /* Table column widths — used to align the expanded detail view */
-      --col-date: 128px;   /* td min-width 100px + padding 14px × 2 */
-      --col-jur:  120px;   /* wide enough for "JURISDICTION" header */
+      --col-date: 128px;   /* DATE column total width (content + 14px×2 padding) */
+      --col-jur:  120px;   /* JUR  column total width */
+      --col-sev:  108px;   /* SEV  column total width */
+      --col-ctrl: 260px;   /* CTRL column total width */
+      --thead-h:  38px;    /* sticky thead height — expanded rows stick just below */
     }
     html { font-size: 15px; }
     body {
@@ -168,15 +171,22 @@
     .filter-bar {
       display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
     }
+    .search-wrap { position: relative; display: inline-flex; }
     .filter-bar input[type=text] {
       background: var(--navy-card);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 6px; color: var(--white);
-      padding: 6px 12px; font-size: 13px; outline: none;
+      padding: 6px 28px 6px 12px; font-size: 13px; outline: none;
       width: 220px; transition: border-color 0.15s;
     }
     .filter-bar input[type=text]::placeholder { color: var(--gray-500); }
     .filter-bar input[type=text]:focus { border-color: var(--teal); }
+    .search-clear {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--gray-500);
+      cursor: pointer; font-size: 13px; padding: 0; line-height: 1;
+    }
+    .search-clear:hover { color: var(--gray-300); }
     .filter-btn {
       background: var(--navy-card);
       border: 1px solid rgba(255,255,255,0.1);
@@ -211,9 +221,22 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
       transition: background 0.1s;
     }
-    tbody tr:last-child { border-bottom: none; }
+    .pub-group:last-child tr:last-child { border-bottom: none; }
     tbody tr:hover { background: rgba(255,255,255,0.03); }
     tbody tr.flagged:hover { background: rgba(13,148,136,0.05); }
+
+    /* Sticky pub-row when its assessment is expanded */
+    .pub-row.expanded {
+      position: sticky;
+      top: var(--thead-h);
+      z-index: 5;
+      background: var(--navy-card);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    }
+    /* Keep background solid on hover — transparent hover would bleed through */
+    .pub-row.expanded:hover,
+    .pub-row.expanded.flagged:hover { background: var(--navy-card); }
+    .pub-row.expanded td { background: var(--navy-card); }
     td { padding: 10px 14px; vertical-align: top; }
 
     .td-ts  { color: var(--gray-500); font-size: 11px; white-space: nowrap; min-width: 100px; }
@@ -222,7 +245,7 @@
     .td-title a { color: var(--white); text-decoration: none; }
     .td-title a:hover { color: var(--teal-light); text-decoration: underline; }
     .td-sev  { min-width: 80px; }
-    .td-ctrl { min-width: 160px; }
+    .td-ctrl { overflow: hidden; }
 
     /* Severity pill */
     .sev {
@@ -258,9 +281,10 @@
     .ctrl-tag.nist { background: rgba(52,211,153,0.1);  color: #6EE7B7; }
     .ctrl-tag.bcbs { background: rgba(251,113,133,0.1); color: #FCA5A5; }
     .ctrl-tag.soc2 { background: rgba(251,146,60,0.1);  color: #FDBA74; }
-    .ctrl-fw-grid { display: flex; flex-direction: column; gap: 3px; }
-    .ctrl-fw-row  { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 4px; }
-    .ctrl-fw-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; flex-shrink: 0; }
+    .ctrl-fw-grid  { display: grid; grid-template-columns: minmax(70px, max-content) 1fr; gap: 3px 8px; align-items: start; min-width: 0; overflow: hidden; }
+    .ctrl-fw-chips { display: flex; flex-wrap: wrap; gap: 3px; min-width: 0; }
+    .ctrl-overflow  { font-size: 10px; padding: 1px 5px; border-radius: 3px; font-family: ui-monospace, monospace; color: var(--gray-500); background: rgba(255,255,255,0.04); }
+    .ctrl-fw-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; padding-top: 2px; }
     .ctrl-fw-label.iso  { color: #93C5FD; }
     .ctrl-fw-label.sysc { color: #FCD34D; }
     .ctrl-fw-label.trm  { color: #C4B5FD; }
@@ -285,7 +309,8 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .detail-inner {
-      padding: 16px 14px 16px calc(var(--col-date) + var(--col-jur));
+      /* left: indent to TITLE column; right: stop at TITLE column right edge */
+      padding: 16px calc(var(--col-sev) + var(--col-ctrl)) 16px calc(var(--col-date) + var(--col-jur));
       display: none;
     }
     .detail-inner.open { display: block; }
@@ -531,7 +556,10 @@
     <div class="section-header">
       <div class="section-title">Publications</div>
       <div class="filter-bar">
-        <input type="text" id="searchInput" placeholder="Search title or summary…" oninput="applyFilters()">
+        <div class="search-wrap">
+          <input type="text" id="searchInput" placeholder="Search title or summary…" oninput="applyFilters(); updateSearchClear()">
+          <button type="button" id="searchClear" class="search-clear" aria-label="Clear search" style="display:none">✕</button>
+        </div>
         <button class="filter-btn" id="btn-flagged" onclick="toggleFlagged()">Flagged only</button>
       </div>
     </div>
@@ -542,8 +570,8 @@
           <col style="width: var(--col-date)">
           <col style="width: var(--col-jur)">
           <col>
-          <col style="width: 108px">
-          <col style="width: 260px">
+          <col style="width: var(--col-sev)">
+          <col style="width: var(--col-ctrl)">
         </colgroup>
         <thead>
           <tr>
@@ -554,8 +582,8 @@
             <th>Affected Controls</th>
           </tr>
         </thead>
-        <tbody>
-          {% for row in rows %}
+        {% for row in rows %}
+        <tbody class="pub-group">
           <tr class="pub-row {% if row.flagged %}flagged{% endif %}"
               data-jur="{{ row.jurisdiction }}"
               data-sev="{{ row.severity }}"
@@ -585,12 +613,15 @@
             <td class="td-ctrl">
               <div class="ctrl-fw-grid">
                 {% for fw_id, fw_assessments in row.by_framework.items() %}
-                <div class="ctrl-fw-row">
-                  <span class="ctrl-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}:</span>
+                <span class="ctrl-fw-label {{ fw_class(fw_id) }}">{{ fw_label(fw_id) }}:</span>
+                <div class="ctrl-fw-chips">
                   {% for a in fw_assessments %}
-                    {% for c in a.affected_controls %}
+                    {% for c in a.affected_controls[:3] %}
                       <span class="ctrl-tag {{ fw_class(fw_id) }}">{{ c }}</span>
                     {% endfor %}
+                    {% if a.affected_controls|length > 3 %}
+                      <span class="ctrl-overflow">+{{ a.affected_controls|length - 3 }}</span>
+                    {% endif %}
                   {% endfor %}
                 </div>
                 {% endfor %}
@@ -632,8 +663,8 @@
             </td>
           </tr>
           {% endif %}
-          {% endfor %}
         </tbody>
+        {% endfor %}
       </table>
 
       {% if not rows %}
@@ -723,6 +754,7 @@
     detailRow.style.display = isOpen ? 'none' : '';
     btn.classList.toggle('open', !isOpen);
     btn.querySelector('.btn-text').textContent = isOpen ? 'View assessment' : 'Close assessment';
+    btn.closest('tr').classList.toggle('expanded', !isOpen);
   }
 
   function toggleRationale(id, btn) {
@@ -730,6 +762,32 @@
     var open = el.classList.toggle('open');
     if (btn) btn.textContent = open ? 'Close Rationale' : 'View Rationale';
   }
+
+  function updateSearchClear() {
+    const val = document.getElementById('searchInput').value;
+    document.getElementById('searchClear').style.display = val ? '' : 'none';
+  }
+
+  function clearSearch() {
+    const inp = document.getElementById('searchInput');
+    inp.value = '';
+    applyFilters();
+    updateSearchClear();
+    inp.focus();
+  }
+
+  document.getElementById('searchClear').addEventListener('click', clearSearch);
+  document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') clearSearch();
+  });
+
+  // Measure actual thead height so sticky pub-rows sit flush below it
+  (function () {
+    var th = document.querySelector('#pubTable thead');
+    if (th) {
+      document.documentElement.style.setProperty('--thead-h', th.getBoundingClientRect().height + 'px');
+    }
+  })();
 
   // Apply default filter on load (flagged only)
   applyFilters();
