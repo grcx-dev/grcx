@@ -235,6 +235,7 @@
     .pub-row.expanded:hover,
     .pub-row.expanded.flagged:hover { background: var(--navy-card); }
     .pub-row.expanded td { background: var(--navy-card); }
+    .pub-row.expanded.sticky-released { position: relative; top: auto; }
     td { padding: 10px 14px; vertical-align: top; }
 
     .td-ts  { color: var(--gray-500); font-size: 11px; white-space: nowrap; min-width: 100px; }
@@ -744,6 +745,21 @@
     applyFilters();
   }
 
+  function checkStickyRelease() {
+    var sc = document.querySelector('.table-wrap');
+    if (!sc) return;
+    var theadH = parseFloat(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--thead-h')) || 38;
+    var scTop = sc.getBoundingClientRect().top;
+    document.querySelectorAll('.pub-row.expanded').forEach(function(pubRow) {
+      var tbody   = pubRow.closest('.pub-group');
+      var tbodyBt = tbody.getBoundingClientRect().bottom;
+      var pubRowH = pubRow.getBoundingClientRect().height;
+      pubRow.classList.toggle('sticky-released', tbodyBt < scTop + theadH + pubRowH);
+    });
+  }
+  document.querySelector('.table-wrap').addEventListener('scroll', checkStickyRelease, { passive: true });
+
   function toggleDetail(fp, btn) {
     const detailRow = document.getElementById('detail-' + fp);
     const inner     = document.getElementById('inner-' + fp);
@@ -753,6 +769,7 @@
     btn.classList.toggle('open', !isOpen);
     btn.querySelector('.btn-text').textContent = isOpen ? 'View assessment' : 'Close assessment';
     btn.closest('tr').classList.toggle('expanded', !isOpen);
+    checkStickyRelease();
   }
 
   function toggleRationale(id, btn) {
