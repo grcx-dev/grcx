@@ -1,6 +1,9 @@
 app = 'grcx'
 primary_region = 'ams'
 
+[env]
+  PYTHONUNBUFFERED = "1"
+
 [build]
 
 [mounts]

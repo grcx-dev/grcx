@@ -208,10 +208,16 @@ def load_data():
     if not LOG_PATH.exists():
         return {}
 
+    # Keyed by source URL — the stable canonical identifier for a publication.
+    # Historical log entries may carry different fingerprints for the same URL
+    # (due to hash-function changes or feed re-emissions); keying on URL
+    # collapses them into one row so every displayed stat reflects the honest
+    # count of distinct publications, not distinct fingerprints.
     publications = {}
-    # Keyed fp -> {framework -> latest_assessment}. Later log entries overwrite
-    # earlier ones for the same (fp, framework) pair, so the dashboard always
-    # renders the most recent resolver run rather than merging across all history.
+    # fp → url: lets resolver.assessment events (which store fingerprint, not
+    # URL) be attributed to the correct URL-keyed row.
+    fp_to_url: dict[str, str] = {}
+    # url → {framework → latest assessment}. Last-write-wins per (url, fw).
     assessments: dict[str, dict[str, dict]] = defaultdict(dict)
     last_updated = None
 
@@ -232,21 +238,37 @@ def load_data():
             event = entry.get("event_type")
 
             if event == "regulatory.new_publication":
-                fp = entry["detail"].get("fingerprint", entry["id"])
-                publications[fp] = {
+                url = entry.get("source", "")
+                fp  = entry["detail"].get("fingerprint", entry.get("id", ""))
+                key = url or fp  # fp fallback for entries without a source URL
+                if fp and url:
+                    fp_to_url[fp] = url
+
+                new_entry = {
                     "fingerprint": fp,
                     "timestamp": entry.get("timestamp", ""),
                     "jurisdiction": entry.get("jurisdiction", ""),
                     "title": entry.get("summary", ""),
-                    "source": entry.get("source", ""),
+                    "source": url,
                     "published": entry["detail"].get("published", ""),
                     "summary": entry["detail"].get("summary", ""),
                 }
+                if key not in publications:
+                    publications[key] = new_entry
+                else:
+                    # Same URL seen again (historical dup fingerprint or re-emit).
+                    # Keep earliest ingestion timestamp (true first-seen);
+                    # take all other fields from the latest entry so corrected
+                    # titles and the newest fingerprint are used.
+                    earliest = min(publications[key]["timestamp"], new_entry["timestamp"])
+                    publications[key] = {**new_entry, "timestamp": earliest}
 
             elif event == "resolver.assessment":
-                fp = entry["detail"].get("fingerprint", "")
-                fw = entry["detail"].get("framework", "iso27001")
-                assessments[fp][fw] = {
+                fp  = entry["detail"].get("fingerprint", "")
+                url = fp_to_url.get(fp, "")
+                key = url or fp  # mirror publications key logic
+                fw  = entry["detail"].get("framework", "iso27001")
+                assessments[key][fw] = {
                     "framework": fw,
                     "severity": entry.get("severity", "info"),
                     "summary": entry.get("summary", ""),
@@ -262,9 +284,9 @@ def load_data():
                 }
 
     rows = []
-    for fp, pub in publications.items():
-        # One entry per framework — latest assessment for each (fp, framework) pair.
-        pub_assessments = list(assessments.get(fp, {}).values())
+    for key, pub in publications.items():
+        # One entry per framework — latest assessment for each (url, framework) pair.
+        pub_assessments = list(assessments.get(key, {}).values())
         sev_order = {"critical": 3, "warning": 2, "info": 1}
         severity = "info"
         if pub_assessments:
