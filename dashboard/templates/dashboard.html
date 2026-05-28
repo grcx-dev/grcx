@@ -208,7 +208,7 @@
       overflow: auto;
       max-height: calc(100vh - 340px);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; table-layout: fixed; }
     thead th {
       background: var(--navy-card);
       padding: 10px 14px; text-align: left;
@@ -217,11 +217,9 @@
       border-bottom: 1px solid rgba(255,255,255,0.07);
       position: sticky; top: 0; z-index: 10;
     }
-    tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      transition: background 0.1s;
-    }
-    .pub-group:last-child tr:last-child { border-bottom: none; }
+    tbody tr { transition: background 0.1s; }
+    tbody td { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .pub-group:last-child tr:last-child td { border-bottom: none; }
     tbody tr:hover { background: rgba(255,255,255,0.03); }
     tbody tr.flagged:hover { background: rgba(13,148,136,0.05); }
 
