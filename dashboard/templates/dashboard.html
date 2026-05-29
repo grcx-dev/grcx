@@ -309,10 +309,23 @@
     }
     .detail-inner {
       /* left: indent to TITLE column; right: stop at TITLE column right edge */
-      padding: 16px calc(var(--col-sev) + var(--col-ctrl)) 16px calc(var(--col-date) + var(--col-jur));
-      display: none;
+      padding: 0 calc(var(--col-sev) + var(--col-ctrl)) 0 calc(var(--col-date) + var(--col-jur));
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      /* ease-in: fast at start, decelerates — correct feel for collapse */
+      transition: max-height 0.22s ease-in, opacity 0.18s ease-in,
+                  padding-top 0.22s ease-in, padding-bottom 0.22s ease-in;
     }
-    .detail-inner.open { display: block; }
+    .detail-inner.open {
+      max-height: 2000px;
+      opacity: 1;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      /* ease-out: fast at start, decelerates — correct feel for expand */
+      transition: max-height 0.25s ease-out, opacity 0.2s ease-out,
+                  padding-top 0.25s ease-out, padding-bottom 0.25s ease-out;
+    }
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -373,12 +386,13 @@
       opacity: 0;
       overflow: hidden;
       padding: 0 10px;
-      transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.15s ease;
+      transition: max-height 0.2s ease-in, opacity 0.18s ease-in, padding 0.18s ease-in;
     }
     .detail-fw-rationale.open {
       max-height: 600px;
       opacity: 1;
       padding: 8px 10px;
+      transition: max-height 0.25s ease-out, opacity 0.2s ease-out, padding 0.2s ease-out;
     }
     .detail-rationale-btn {
       background: none; border: none; color: var(--teal);
@@ -866,12 +880,31 @@
     const detailRow = document.getElementById('detail-' + fp);
     const inner     = document.getElementById('inner-' + fp);
     const isOpen    = inner.classList.contains('open');
-    inner.classList.toggle('open', !isOpen);
-    detailRow.style.display = isOpen ? 'none' : '';
-    btn.classList.toggle('open', !isOpen);
-    btn.querySelector('.btn-text').textContent = isOpen ? 'View assessment' : 'Close assessment';
-    btn.closest('tr').classList.toggle('expanded', !isOpen);
-    checkStickyRelease();
+    const pubRow    = btn.closest('tr');
+
+    if (!isOpen) {
+      // Expand: reveal row, flush layout so the transition fires from 0
+      detailRow.style.display = '';
+      inner.getBoundingClientRect();
+      inner.classList.add('open');
+      btn.classList.add('open');
+      btn.querySelector('.btn-text').textContent = 'Close assessment';
+      pubRow.classList.add('expanded');
+      checkStickyRelease();
+    } else {
+      // Collapse: animate shut, then hide the row and release sticky
+      inner.classList.remove('open');
+      btn.classList.remove('open');
+      btn.querySelector('.btn-text').textContent = 'View assessment';
+      inner.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'opacity') {
+          detailRow.style.display = 'none';
+          pubRow.classList.remove('expanded');
+          checkStickyRelease();
+          inner.removeEventListener('transitionend', handler);
+        }
+      });
+    }
   }
 
   function toggleRationale(id, btn) {
