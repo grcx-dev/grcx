@@ -126,6 +126,7 @@ def run(config: dict, dry_run: bool = False, poll_interval: int = 300):
                     jurisdiction=feed.get("jurisdiction", "UNKNOWN"),
                     sender_filter=feed.get("sender_filter", ""),
                     port=feed.get("port", 993),
+                    timeout=feed.get("timeout", 30),
                 )
             )
 

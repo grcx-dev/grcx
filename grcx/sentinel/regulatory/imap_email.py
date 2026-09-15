@@ -195,9 +195,11 @@ class EmailSentinel:
         jurisdiction: str,
         sender_filter: str,
         port: int = 993,
+        timeout: float = 30.0,
     ):
         self.host = host
         self.port = port
+        self.timeout = timeout
         self.username = username
         self.jurisdiction = jurisdiction
         self.sender_filter = sender_filter.lower()
@@ -240,7 +242,13 @@ class EmailSentinel:
     # ------------------------------------------------------------------
 
     def _fetch_messages(self, password: str) -> list[email.message.Message]:
-        with imaplib.IMAP4_SSL(self.host, self.port) as imap:
+        # timeout is mandatory: socket.create_connection() leaves it set on the
+        # socket, so every later read has a deadline too. Without it a peer that
+        # vanishes without sending a FIN leaves the socket ESTABLISHED with no
+        # kernel timer armed, and imaplib blocks in read() forever — nothing
+        # raises, so the except-handlers below never fire and the poll loop in
+        # runner.py stops dead. Seen in production 2026-09-07: 7 days of silence.
+        with imaplib.IMAP4_SSL(self.host, self.port, timeout=self.timeout) as imap:
             imap.login(self.username, password)
             imap.select("INBOX", readonly=True)
 
