@@ -60,4 +60,6 @@ runner = ".venv/bin/python -m pytest -x -q --override-ini='testpaths=' tests/tes
 do_not_mutate = ["__init__.py"]
 
 [dependency-groups]
-dev = []
+dev = [
+    "playwright>=1.60.0",
+]
